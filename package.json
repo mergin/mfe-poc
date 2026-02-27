@@ -6,7 +6,18 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "serve:ssr:shell": "node dist/shell/server/server.mjs",
+    "serve:ssr:mfe-customers": "node dist/mfe-customers/server/server.mjs",
+    "serve:ssr:mfe-accounts": "node dist/mfe-accounts/server/server.mjs",
+    "start:shell": "ng serve shell --port 4200",
+    "start:mfe-customers": "ng serve mfe-customers --port 4201",
+    "start:mfe-accounts": "ng serve mfe-accounts --port 4202",
+    "start:all": "concurrently -c \"blue,green,magenta\" --names \"shell,customers,accounts\" \"npm run start:shell\" \"npm run start:mfe-customers\" \"npm run start:mfe-accounts\"",
+    "build:mfe-customers": "ng build mfe-customers",
+    "build:mfe-accounts": "ng build mfe-accounts",
+    "build:shell": "ng build shell",
+    "build:all": "npm run build:mfe-customers && npm run build:mfe-accounts && npm run build:shell"
   },
   "prettier": {
     "printWidth": 100,
@@ -23,18 +34,41 @@
   "private": true,
   "packageManager": "npm@11.8.0",
   "dependencies": {
+    "@angular/animations": "^21.1.0",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
     "@angular/forms": "^21.1.0",
     "@angular/platform-browser": "^21.1.0",
+    "@angular/platform-server": "^21.1.0",
     "@angular/router": "^21.1.0",
+    "@angular/ssr": "^21.1.5",
+    "@softarc/native-federation-node": "^3.5.2",
+    "cors": "^2.8.5",
+    "es-module-shims": "^1.5.12",
+    "express": "^5.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@angular-architects/native-federation": "^21.1.1",
+    "@angular-devkit/build-angular": "^21.1.5",
+    "@angular/build": "^21.1.5",
     "@angular/cli": "^21.1.5",
     "@angular/compiler-cli": "^21.1.0",
-    "typescript": "~5.9.2"
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.17.19",
+    "concurrently": "9.2.1",
+    "jsdom": "^27.1.0",
+    "msw": "^2.12.10",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  },
+  "msw": {
+    "workerDirectory": [
+      "projects/shell/public",
+      "projects/mfe-customers/public",
+      "projects/mfe-accounts/public"
+    ]
   }
 }

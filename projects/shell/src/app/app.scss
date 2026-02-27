@@ -1,0 +1,55 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.shell-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 1.5rem;
+  height: 56px;
+  background: #003087;
+  color: #fff;
+}
+
+.shell-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+.shell-nav {
+  display: flex;
+  gap: 0.5rem;
+
+  a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      outline: 2px solid rgba(255, 255, 255, 0.6);
+      outline-offset: 2px;
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+  }
+}
+
+.shell-main {
+  flex: 1;
+  overflow: auto;
+}
