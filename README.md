@@ -264,7 +264,97 @@ The log file is overwritten on every run and contains three sections per project
 
 ---
 
-## Connecting a real API
+## API mocking with MSW
+
+[Mock Service Worker (MSW)](https://mswjs.io/) is used to intercept HTTP requests in the browser during local development, so the apps can run fully without a real backend.
+
+### How it works
+
+MSW uses a **Service Worker** registered in each app's `public/` folder to intercept `fetch` requests at the network level. The worker is started automatically at bootstrap **only on `localhost`** — it is a no-op in production builds.
+
+```
+Bootstrap (localhost only)
+  └── bootstrap.ts
+        └── import './mocks/browser'
+              └── setupWorker(...handlers)   ← MSW Service Worker
+                    └── worker.start()       ← registered in <project>/public/mockServiceWorker.js
+```
+
+### File layout
+
+```
+mfe-poc/
+├── mocks/                              # Workspace-level shared mock data & handlers
+│   ├── db.ts                           # In-memory fixture data (customersDb, accountsDb)
+│   ├── server.ts                       # MSW Node server (for future integration/e2e tests only)
+│   └── handlers/
+│       ├── customers.ts                # GET /customers, GET /customers/:id
+│       └── accounts.ts                 # GET /accounts, GET /accounts/:id
+│
+└── projects/
+    ├── shell/src/mocks/browser.ts      # setupWorker(customerHandlers, accountHandlers)
+    ├── mfe-customers/src/mocks/browser.ts  # setupWorker(customerHandlers)
+    └── mfe-accounts/src/mocks/browser.ts   # setupWorker(accountHandlers)
+```
+
+The shell aggregates **both** handler sets so a single worker intercepts every API call regardless of which MFE originated it. Each standalone MFE registers only its own handlers for independent `ng serve`.
+
+### Mock data (`mocks/db.ts`)
+
+| Collection | Records | Fields |
+|---|---|---|
+| `customersDb` | 5 customers | `id`, `name`, `email`, `status` (`active`\|`inactive`) |
+| `accountsDb` | 6 accounts | `id`, `accountNumber`, `type` (`checking`\|`savings`\|`credit`), `balance`, `currency`, `ownerId` |
+
+Types are defined inline in `db.ts` (not imported from MFE source) to avoid cross-project TypeScript compilation boundaries.
+
+### Handlers (`mocks/handlers/`)
+
+All handlers simulate realistic network latency via MSW's `delay()` helper.
+
+| Method | URL | Response | Delay |
+|---|---|---|---|
+| `GET` | `/v1/customers` | Array of all customers | 400 ms |
+| `GET` | `/v1/customers/:id` | Single customer or `404` | 300 ms |
+| `GET` | `/v1/accounts` | Array of all accounts | 400 ms |
+| `GET` | `/v1/accounts/:id` | Single account or `404` | 300 ms |
+
+The base URL matches the `API_BASE_URL` token value: `https://api-gateway.example.com/v1`.
+
+### Activating the mocks
+
+MSW is **active by default on `localhost`** — no flags or environment variables needed. The check in `bootstrap.ts` is:
+
+```typescript
+if (typeof window !== 'undefined' && location.hostname === 'localhost') {
+  const { worker } = await import('./mocks/browser');
+  await worker.start({ onUnhandledRequest: 'bypass' });
+}
+```
+
+`onUnhandledRequest: 'bypass'` means any request that does not match a handler (e.g. federation `remoteEntry.json` fetches) passes through to the network unchanged.
+
+To **disable** the mocks while keeping `ng serve` running, open DevTools and unregister the Service Worker under **Application → Service Workers**.
+
+### Adding a new handler
+
+1. Add your fixture records to `mocks/db.ts`.
+2. Add a handler to the relevant file in `mocks/handlers/` (or create a new one).
+3. Register the handler in the appropriate `browser.ts` files.
+
+```typescript
+// mocks/handlers/customers.ts
+http.get(`${BASE}/customers/:id/orders`, async ({ params }) => {
+  await delay(200);
+  return HttpResponse.json(ordersDb.filter(o => o.customerId === params['id']));
+}),
+```
+
+### MSW and unit tests
+
+MSW's **`msw/node`** (`mocks/server.ts`) is **not used in unit tests**. Importing it causes the `@angular/build:unit-test` Vitest runner to hang indefinitely due to Node HTTP patching conflicts. Unit tests use Angular's `HttpTestingController` instead.
+
+`mocks/server.ts` is kept for use in future **integration or e2e** test suites that run outside the Angular test builder (e.g. Playwright, or a plain Vitest config targeting Node).
 
 1. Replace `useValue: 'https://api-gateway.example.com/v1'` in `projects/shell/src/app/app.config.ts` with your real gateway URL (or read it from an environment variable).
 2. Replace the `sessionStorage.getItem('access_token')` stub in `projects/shell/src/app/core/auth.interceptor.ts` with your real token source (MSAL, Keycloak, etc.).
