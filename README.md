@@ -139,11 +139,128 @@ Output lands in `dist/<project>/browser/`.
 
 ## Running tests
 
+The test suite uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test` with `HttpTestingController` for HTTP interception. **No running servers are required.**
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `npm run test:shell` | Runs shell tests only (watch-free) |
+| `npm run test:customers` | Runs mfe-customers tests only |
+| `npm run test:accounts` | Runs mfe-accounts tests only |
+| `npm run test:all` | Runs all three suites sequentially |
+| `npm run test:all:log` | Runs all three suites with coverage and writes `test-result.log` |
+
+### Quick run
+
 ```bash
-npm test
+# Run all tests once (no watch mode)
+npm run test:all
+
+# Run all tests + coverage, save results to test-result.log
+npm run test:all:log
 ```
 
-Uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test`.
+### What is tested
+
+| Project | Spec files | Tests | What's covered |
+|---|---|---|---|
+| `shell` | 2 | 8 | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough) |
+| `mfe-customers` | 3 | 17 | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change) |
+| `mfe-accounts` | 3 | 19 | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change) |
+| **Total** | **8** | **44** | |
+
+### Test stack
+
+- **Runner**: Vitest 4 (managed by `@angular/build:unit-test`, jsdom environment)
+- **HTTP mocking**: `HttpTestingController` — no network calls, no running servers needed
+- **Mock data**: shared fixture in `mocks/db.ts` (`customersDb`, `accountsDb`)
+- **Globals**: `describe`/`it`/`expect`/`beforeAll` etc. are available globally via `"types": ["vitest/globals"]` in `tsconfig.spec.json`
+
+> **Note:** `msw/node` (Service Worker mocking) is intentionally **not** used in unit tests — importing it causes the `@angular/build:unit-test` Vitest runner to hang. MSW is wired for browser-only use (`mocks/handlers/`) and is available for future integration/e2e tests.
+
+---
+
+### Coverage report (`npm run test:all:log`)
+
+Running `npm run test:all:log` executes `scripts/test-all-log.sh`, which:
+
+1. Runs each project with `--coverage` (using [`@vitest/coverage-v8`](https://vitest.dev/guide/coverage))
+2. Prints live feedback in the terminal as each suite completes
+3. Prints a consolidated coverage summary table at the end
+4. Writes a full human-readable report to **`test-result.log`** in the project root
+
+#### Terminal output (example)
+
+```
+  ██████████████████████████████████████████████
+  ██  MFE-POC  ·  Unit Tests + Coverage        ██
+  ██████████████████████████████████████████████
+
+  ▶  Testing  shell ...
+  ✔  shell → 8 tests in 2 file(s) · 5.70s
+     Stmts: 100%  Branch: 100%  Funcs: 100%  Lines: 100%
+
+  ▶  Testing  mfe-customers ...
+  ✔  mfe-customers → 17 tests in 3 file(s) · 8.18s
+     Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
+
+  ▶  Testing  mfe-accounts ...
+  ✔  mfe-accounts → 19 tests in 3 file(s) · 7.10s
+     Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
+
+  ────────────────────────────────────────────────────────
+  Coverage Summary
+
+  Project            |  Stmts | Branch |  Funcs |  Lines
+  ───────────────────────────────────────────────────────
+  shell              |    100 |    100 |    100 |    100 | 8 tests · 5.70s
+  mfe-customers      |    100 |   92.5 |    100 |    100 | 17 tests · 8.18s
+  mfe-accounts       |    100 |   92.5 |    100 |    100 | 19 tests · 7.10s
+
+  ────────────────────────────────────────────────────────
+  ✔  ALL TESTS PASSED  ·  44 tests across 8 spec file(s)
+  Log: .../test-result.log
+  ────────────────────────────────────────────────────────
+```
+
+#### `test-result.log` structure
+
+The log file is overwritten on every run and contains three sections per project:
+
+```
+════════════════════════════════════════════════════════════
+  MFE-POC · Unit Test & Coverage Report
+  Generated: 2026-02-26 09:00:00
+════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────┐
+│  Project : shell                                         │
+│  Status  : PASSED ✔                                     │
+│  Files   : 2 passed                                      │
+│  Tests   : 8 passed                                      │
+│  Duration: 5.70s                                         │
+└─────────────────────────────────────────────────────────┘
+
+  ── Coverage ───────────────────────────────────────────
+  (v8 coverage table — Stmts / Branch / Funcs / Lines per file)
+
+  ── Full Output ────────────────────────────────────────
+  (raw Vitest output for debugging — build times, test names, etc.)
+
+────────────────────────────────────────────────────────────
+... (repeated for mfe-customers and mfe-accounts) ...
+
+════════════════════════════════════════════════════════════
+  SUMMARY
+════════════════════════════════════════════════════════════
+  Result    : ALL PASSED ✔
+  Total     : 44 tests  |  8 spec files
+  Completed : 2026-02-26 09:00:35
+════════════════════════════════════════════════════════════
+```
+
+> `test-result.log` is listed in `.gitignore` — it is a local artefact and is not committed.
 
 ---
 
