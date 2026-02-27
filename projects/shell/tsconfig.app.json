@@ -9,8 +9,7 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "../../mocks/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

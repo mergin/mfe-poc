@@ -1,0 +1,143 @@
+import { TestBed } from '@angular/core/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideZonelessChangeDetection } from '@angular/core';
+
+import { CustomerDetailComponent } from './customer-detail.component';
+import { API_BASE_URL } from '../../core/api.config';
+import { customersDb } from '@mocks/db';
+
+const BASE = 'https://api-gateway.example.com/v1';
+
+async function setup(id: string) {
+  await TestBed.configureTestingModule({
+    imports: [CustomerDetailComponent],
+    providers: [
+      provideZonelessChangeDetection(),
+      provideHttpClient(withFetch()),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      { provide: API_BASE_URL, useValue: BASE },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(CustomerDetailComponent);
+  fixture.componentRef.setInput('id', id);
+  const controller = TestBed.inject(HttpTestingController);
+  return { fixture, controller };
+}
+
+describe('CustomerDetailComponent', () => {
+  const customer = customersDb[0]; // Alice Martínez — c-001, active
+
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('should create', async () => {
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+    expect(fixture.componentInstance).toBeTruthy();
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+  });
+
+  it('should show loading state before data arrives', async () => {
+    const { fixture } = await setup(customer.id);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.state-msg')?.textContent).toContain('Loading');
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${BASE}/customers/${customer.id}`)
+      .flush(customer);
+  });
+
+  it('should render customer name as heading', async () => {
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
+      customer.name,
+    );
+  });
+
+  it('should render all detail fields (id, email, status)', async () => {
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain(customer.id);
+    expect(text).toContain(customer.email);
+    expect(text).toContain(customer.status);
+  });
+
+  it('should apply the correct badge class for the status', async () => {
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const badge = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.badge');
+    expect(badge?.classList.contains(`badge--${customer.status}`)).toBe(true);
+  });
+
+  it('should render a back link', async () => {
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const backLink = (fixture.nativeElement as HTMLElement).querySelector('.back-link');
+    expect(backLink?.textContent).toContain('Back');
+  });
+
+  it('should show error state when the API returns 404', async () => {
+    const { fixture, controller } = await setup('c-999');
+    fixture.detectChanges();
+
+    controller
+      .expectOne(`${BASE}/customers/c-999`)
+      .flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent,
+    ).toContain('not found');
+  });
+
+  it('should reload data when the id input changes', async () => {
+    const secondCustomer = customersDb[1]; // Bob Nguyen — c-002
+
+    const { fixture, controller } = await setup(customer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${customer.id}`).flush(customer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('id', secondCustomer.id);
+    fixture.detectChanges();
+
+    controller.expectOne(`${BASE}/customers/${secondCustomer.id}`).flush(secondCustomer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
+      secondCustomer.name,
+    );
+  });
+});
