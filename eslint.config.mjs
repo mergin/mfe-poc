@@ -39,7 +39,7 @@ export default defineConfig([
       '@angular-eslint/template/prefer-ngsrc': 'warn',
       '@angular-eslint/template/prefer-control-flow': 'error',
       '@angular-eslint/template/cyclomatic-complexity': [
-        'off',
+        'error',
         {
           maxComplexity: 10,
         },

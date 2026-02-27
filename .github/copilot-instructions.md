@@ -54,6 +54,43 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
 
+## Code Style — Prettier
+
+All generated code must conform to `.prettierrc`. Key rules:
+
+- **Line length**: max 100 characters (`printWidth: 100`)
+- **Indentation**: 2 spaces — never tabs
+- **Quotes**: single quotes for strings (`singleQuote: true`)
+- **Semicolons**: always required (`semi: true`)
+- **Trailing commas**: always, including function parameters (`trailingComma: "all"`)
+- **Arrow function parens**: omit when there is a single parameter (`arrowParens: "avoid"`) — write `x => x` not `(x) => x`
+- **HTML attributes**: one attribute per line in templates (`singleAttributePerLine: true`)
+- **HTML parser**: Angular parser is used for `.html` files — do not use generic HTML formatting conventions
+
+Run `npm run format` to auto-format all `.ts`, `.html`, and `.scss` files under `projects/`.
+
+## Code Style — ESLint
+
+All generated code must pass `npm run lint` without errors. Key enforced rules:
+
+### TypeScript (`*.ts`)
+
+- No unused variables (`@typescript-eslint/no-unused-vars`) — remove or prefix with `_` if intentionally unused, but prefer removing
+- All `typescript-eslint` recommended rules apply
+
+### Angular HTML templates (`*.html`)
+
+- **Self-closing tags**: always use self-closing syntax for void/empty elements (`prefer-self-closing-tags`) — e.g. `<input />` not `<input>`
+- **Control flow**: always use native `@if`, `@for`, `@switch` — never `*ngIf`, `*ngFor`, `*ngSwitch` (`prefer-control-flow`)
+- **Image optimisation**: prefer `ngSrc` over `src` on `<img>` elements (`prefer-ngsrc`)
+- **Equality**: always use `===` / `!==` in template expressions (`eqeqeq`)
+
+### General
+
+- `eslint-config-prettier` is active — do not add ESLint formatting rules that conflict with Prettier
+- Run `npm run lint` to check all three projects; `npm run lint:shell`, `npm run lint:mfe-customers`, `npm run lint:mfe-accounts` to check individually
+- All `lint:*` scripts run with `--fix`, so auto-fixable issues are corrected automatically
+
 ## Unit Testing
 
 ### Framework & Runner

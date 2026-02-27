@@ -28,52 +28,104 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 
 ### Key design decisions
 
-| Concern | Solution |
-|---|---|
-| Module federation | `@angular-architects/native-federation` — ES import maps, no Webpack |
-| Shared singletons | `shareAll({ singleton: true })` in each `federation.config.js` |
-| HTTP client | Provided **once** in the shell; automatically shared with all MFEs |
-| Auth | `authInterceptor` in the shell attaches `Authorization: Bearer <token>` to every request |
-| API base URL | `API_BASE_URL` injection token provided in the shell as `https://api-gateway.example.com/v1` |
-| Change detection | `OnPush` everywhere |
-| State | Angular `resource()` + signals |
-| Routing | `withComponentInputBinding()` — route params map directly to `input()` signals |
+| Concern           | Solution                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| Module federation | `@angular-architects/native-federation` — ES import maps, no Webpack                         |
+| Shared singletons | `shareAll({ singleton: true })` in each `federation.config.js`                               |
+| HTTP client       | Provided **once** in the shell; automatically shared with all MFEs                           |
+| Auth              | `authInterceptor` in the shell attaches `Authorization: Bearer <token>` to every request     |
+| API base URL      | `API_BASE_URL` injection token provided in the shell as `https://api-gateway.example.com/v1` |
+| Change detection  | `OnPush` everywhere                                                                          |
+| State             | Angular `resource()` + signals                                                               |
+| Routing           | `withComponentInputBinding()` — route params map directly to `input()` signals               |
 
 ### Project layout
 
 ```
 mfe-poc/
 ├── angular.json                      # Monorepo config (3 projects)
+├── eslint.config.mjs                 # ESLint flat config (TS + Angular templates + Prettier)
 ├── package.json
+├── tsconfig.json                     # Root TypeScript config
+├── vitest.config.ts                  # Vitest workspace config
+├── .prettierrc                       # Prettier config
+├── .husky/
+│   └── pre-commit                    # Runs lint-staged on every commit
+│
+├── mocks/                            # Workspace-level shared mock data & MSW handlers
+│   ├── db.ts                         # In-memory fixture data (customersDb, accountsDb)
+│   ├── server.ts                     # MSW Node server (future integration/e2e use only)
+│   └── handlers/
+│       ├── customers.ts              # GET /customers, GET /customers/:id
+│       └── accounts.ts               # GET /accounts, GET /accounts/:id
 │
 └── projects/
     ├── shell/                        # Host application (port 4200)
     │   ├── federation.config.js      # Native Federation host config
-    │   └── src/app/
-    │       ├── app.ts                # Root component (nav + router-outlet)
-    │       ├── app.routes.ts         # loadRemoteModule → CUSTOMERS_ROUTES / ACCOUNTS_ROUTES
-    │       ├── app.config.ts         # provideRouter, provideHttpClient + authInterceptor, API_BASE_URL
-    │       └── core/
-    │           ├── api.config.ts     # InjectionToken<string> API_BASE_URL
-    │           └── auth.interceptor.ts  # HttpInterceptorFn — Bearer token from sessionStorage
+    │   └── src/
+    │       ├── main.ts               # initFederation → bootstrap
+    │       ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
+    │       ├── bootstrap-server.ts   # SSR bootstrap
+    │       ├── mocks/
+    │       │   └── browser.ts        # setupWorker(customerHandlers, accountHandlers)
+    │       └── app/
+    │           ├── app.ts            # Root component (nav + router-outlet)
+    │           ├── app.html          # Shell layout template
+    │           ├── app.routes.ts     # loadRemoteModule → CUSTOMERS_ROUTES / ACCOUNTS_ROUTES
+    │           ├── app.routes.server.ts
+    │           ├── app.config.ts     # provideRouter, provideHttpClient + authInterceptor
+    │           ├── app.config.server.ts
+    │           ├── app.spec.ts       # Shell root component tests
+    │           └── core/
+    │               ├── api.config.ts           # InjectionToken<string> API_BASE_URL
+    │               ├── auth.interceptor.ts     # HttpInterceptorFn — Bearer token from sessionStorage
+    │               └── auth.interceptor.spec.ts
     │
     ├── mfe-customers/                # Customers remote (port 4201)
     │   ├── federation.config.js      # exposes: { './Routes': customers.routes.ts }
-    │   └── src/app/
-    │       ├── customers.routes.ts   # CUSTOMERS_ROUTES (exposed to shell)
-    │       ├── app.routes.ts         # Standalone wrapper (for ng serve mfe-customers)
-    │       └── customers/
-    │           ├── customer-list/    # List component — resource() + HttpClient
-    │           └── customer-detail/ # Detail component — input(:id) → resource()
+    │   └── src/
+    │       ├── main.ts
+    │       ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
+    │       ├── bootstrap-server.ts
+    │       ├── mocks/
+    │       │   └── browser.ts        # setupWorker(customerHandlers)
+    │       └── app/
+    │           ├── app.ts
+    │           ├── app.html
+    │           ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-customers)
+    │           ├── app.routes.server.ts
+    │           ├── app.config.ts
+    │           ├── app.config.server.ts
+    │           ├── app.spec.ts
+    │           ├── customers.routes.ts   # CUSTOMERS_ROUTES (exposed to shell)
+    │           └── core/
+    │               └── api.config.ts
+    │           └── customers/
+    │               ├── customer-list/    # List component — resource() + HttpClient
+    │               └── customer-detail/ # Detail component — input(:id) → resource()
     │
     └── mfe-accounts/                 # Accounts remote (port 4202)
         ├── federation.config.js      # exposes: { './Routes': accounts.routes.ts }
-        └── src/app/
-            ├── accounts.routes.ts    # ACCOUNTS_ROUTES (exposed to shell)
-            ├── app.routes.ts         # Standalone wrapper (for ng serve mfe-accounts)
-            └── accounts/
-                ├── account-list/    # List component — resource() + HttpClient
-                └── account-detail/ # Detail component — input(:id) → resource()
+        └── src/
+            ├── main.ts
+            ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
+            ├── bootstrap-server.ts
+            ├── mocks/
+            │   └── browser.ts        # setupWorker(accountHandlers)
+            └── app/
+                ├── app.ts
+                ├── app.html
+                ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-accounts)
+                ├── app.routes.server.ts
+                ├── app.config.ts
+                ├── app.config.server.ts
+                ├── app.spec.ts
+                ├── accounts.routes.ts    # ACCOUNTS_ROUTES (exposed to shell)
+                └── core/
+                    └── api.config.ts
+                └── accounts/
+                    ├── account-list/    # List component — resource() + HttpClient
+                    └── account-detail/ # Detail component — input(:id) → resource()
 ```
 
 ### How federation works
@@ -137,19 +189,74 @@ Output lands in `dist/<project>/browser/`.
 
 ---
 
+## Linting and formatting
+
+### Commands
+
+| Command                      | What it does                                               |
+| ---------------------------- | ---------------------------------------------------------- |
+| `npm run lint`               | Lint all three projects sequentially (with `--fix`)        |
+| `npm run lint:shell`         | Lint `shell` only                                          |
+| `npm run lint:mfe-customers` | Lint `mfe-customers` only                                  |
+| `npm run lint:mfe-accounts`  | Lint `mfe-accounts` only                                   |
+| `npm run format`             | Format all `.ts`, `.html`, `.scss` files under `projects/` |
+
+### Linting
+
+ESLint is configured in `eslint.config.mjs` (flat config) with three rule sets:
+
+- **TypeScript** (`*.ts`) — `typescript-eslint` recommended rules, including `no-unused-vars`
+- **Angular templates** (`*.html`) — `angular-eslint` template rules:
+  - `prefer-self-closing-tags` — e.g. `<input />` not `<input>` _(error)_
+  - `prefer-control-flow` — `@if`/`@for`/`@switch` only, no structural directives _(error)_
+  - `eqeqeq` — `===`/`!==` only in template expressions _(error)_
+  - `prefer-ngsrc` — prefer `ngSrc` over `src` on `<img>` elements _(warning)_
+- **Prettier compatibility** — `eslint-config-prettier` disables any ESLint rules that would conflict with Prettier
+
+All `lint:*` scripts run with `--fix`, so auto-fixable issues (self-closing tags, control flow migration) are corrected automatically.
+
+### Formatting
+
+Prettier is configured in `.prettierrc`. Key settings:
+
+| Setting                  | Value                                             |
+| ------------------------ | ------------------------------------------------- |
+| `printWidth`             | `100`                                             |
+| `tabWidth`               | `2` (spaces, never tabs)                          |
+| `singleQuote`            | `true`                                            |
+| `semi`                   | `true`                                            |
+| `trailingComma`          | `"all"` (including function parameters)           |
+| `arrowParens`            | `"avoid"` — `x => x`, not `(x) => x`              |
+| `singleAttributePerLine` | `true` — one HTML attribute per line              |
+| HTML parser              | `"angular"` — understands Angular template syntax |
+
+### Pre-commit hook
+
+[Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged) run automatically on every `git commit`, processing only the staged files:
+
+| Staged file          | Steps run                           |
+| -------------------- | ----------------------------------- |
+| `projects/**/*.ts`   | `eslint --fix` → `prettier --write` |
+| `projects/**/*.html` | `eslint --fix` → `prettier --write` |
+| `projects/**/*.scss` | `prettier --write`                  |
+
+The hook is installed automatically via the `prepare` script when running `npm install` on a fresh clone.
+
+---
+
 ## Running tests
 
 The test suite uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test` with `HttpTestingController` for HTTP interception. **No running servers are required.**
 
 ### Commands
 
-| Command | What it does |
-|---|---|
-| `npm run test:shell` | Runs shell tests only (watch-free) |
-| `npm run test:customers` | Runs mfe-customers tests only |
-| `npm run test:accounts` | Runs mfe-accounts tests only |
-| `npm run test:all` | Runs all three suites sequentially |
-| `npm run test:all:log` | Runs all three suites with coverage and writes `test-result.log` |
+| Command                  | What it does                                                     |
+| ------------------------ | ---------------------------------------------------------------- |
+| `npm run test:shell`     | Runs shell tests only (watch-free)                               |
+| `npm run test:customers` | Runs mfe-customers tests only                                    |
+| `npm run test:accounts`  | Runs mfe-accounts tests only                                     |
+| `npm run test:all`       | Runs all three suites sequentially                               |
+| `npm run test:all:log`   | Runs all three suites with coverage and writes `test-result.log` |
 
 ### Quick run
 
@@ -163,12 +270,12 @@ npm run test:all:log
 
 ### What is tested
 
-| Project | Spec files | Tests | What's covered |
-|---|---|---|---|
-| `shell` | 2 | 8 | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough) |
-| `mfe-customers` | 3 | 17 | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change) |
-| `mfe-accounts` | 3 | 19 | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change) |
-| **Total** | **8** | **44** | |
+| Project         | Spec files | Tests  | What's covered                                                                                                                        |
+| --------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `shell`         | 2          | 8      | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough)                                                  |
+| `mfe-customers` | 3          | 17     | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change) |
+| `mfe-accounts`  | 3          | 19     | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change)  |
+| **Total**       | **8**      | **44** |                                                                                                                                       |
 
 ### Test stack
 
@@ -282,29 +389,19 @@ Bootstrap (localhost only)
 
 ### File layout
 
-```
-mfe-poc/
-├── mocks/                              # Workspace-level shared mock data & handlers
-│   ├── db.ts                           # In-memory fixture data (customersDb, accountsDb)
-│   ├── server.ts                       # MSW Node server (for future integration/e2e tests only)
-│   └── handlers/
-│       ├── customers.ts                # GET /customers, GET /customers/:id
-│       └── accounts.ts                 # GET /accounts, GET /accounts/:id
-│
-└── projects/
-    ├── shell/src/mocks/browser.ts      # setupWorker(customerHandlers, accountHandlers)
-    ├── mfe-customers/src/mocks/browser.ts  # setupWorker(customerHandlers)
-    └── mfe-accounts/src/mocks/browser.ts   # setupWorker(accountHandlers)
-```
+See the [Project layout](#project-layout) tree above. The relevant files are:
+
+- `mocks/` — shared fixture data and handlers (workspace root)
+- `projects/<app>/src/mocks/browser.ts` — per-app Service Worker setup
 
 The shell aggregates **both** handler sets so a single worker intercepts every API call regardless of which MFE originated it. Each standalone MFE registers only its own handlers for independent `ng serve`.
 
 ### Mock data (`mocks/db.ts`)
 
-| Collection | Records | Fields |
-|---|---|---|
-| `customersDb` | 5 customers | `id`, `name`, `email`, `status` (`active`\|`inactive`) |
-| `accountsDb` | 6 accounts | `id`, `accountNumber`, `type` (`checking`\|`savings`\|`credit`), `balance`, `currency`, `ownerId` |
+| Collection    | Records     | Fields                                                                                            |
+| ------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `customersDb` | 5 customers | `id`, `name`, `email`, `status` (`active`\|`inactive`)                                            |
+| `accountsDb`  | 6 accounts  | `id`, `accountNumber`, `type` (`checking`\|`savings`\|`credit`), `balance`, `currency`, `ownerId` |
 
 Types are defined inline in `db.ts` (not imported from MFE source) to avoid cross-project TypeScript compilation boundaries.
 
@@ -312,12 +409,12 @@ Types are defined inline in `db.ts` (not imported from MFE source) to avoid cros
 
 All handlers simulate realistic network latency via MSW's `delay()` helper.
 
-| Method | URL | Response | Delay |
-|---|---|---|---|
-| `GET` | `/v1/customers` | Array of all customers | 400 ms |
-| `GET` | `/v1/customers/:id` | Single customer or `404` | 300 ms |
-| `GET` | `/v1/accounts` | Array of all accounts | 400 ms |
-| `GET` | `/v1/accounts/:id` | Single account or `404` | 300 ms |
+| Method | URL                 | Response                 | Delay  |
+| ------ | ------------------- | ------------------------ | ------ |
+| `GET`  | `/v1/customers`     | Array of all customers   | 400 ms |
+| `GET`  | `/v1/customers/:id` | Single customer or `404` | 300 ms |
+| `GET`  | `/v1/accounts`      | Array of all accounts    | 400 ms |
+| `GET`  | `/v1/accounts/:id`  | Single account or `404`  | 300 ms |
 
 The base URL matches the `API_BASE_URL` token value: `https://api-gateway.example.com/v1`.
 
