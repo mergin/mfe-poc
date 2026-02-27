@@ -244,6 +244,80 @@ The hook is installed automatically via the `prepare` script when running `npm i
 
 ---
 
+## Commit conventions
+
+Commit messages are enforced by [commitlint](https://commitlint.js.org/) using the [`@commitlint/config-angular`](https://github.com/conventional-changelog/commitlint/tree/master/@commitlint/config-angular) preset. The hook runs automatically via Husky on every `git commit`.
+
+### Format
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+### Types
+
+| Type       | When to use                                          |
+| ---------- | ---------------------------------------------------- |
+| `feat`     | A new feature                                        |
+| `fix`      | A bug fix                                            |
+| `docs`     | Documentation changes only                           |
+| `style`    | Formatting, whitespace — no logic change             |
+| `refactor` | Code change that is neither a fix nor a feature      |
+| `perf`     | Performance improvement                              |
+| `test`     | Adding or updating tests                             |
+| `chore`    | Build process, tooling, dependency updates           |
+| `build`    | Changes to the build system or external dependencies |
+| `ci`       | CI/CD configuration changes                          |
+| `revert`   | Reverts a previous commit                            |
+
+### Scopes
+
+Scopes are optional but recommended. Allowed values are restricted to this monorepo's projects and shared concerns:
+
+| Scope       | What it covers                                  |
+| ----------- | ----------------------------------------------- |
+| `shell`     | `projects/shell`                                |
+| `customers` | `projects/mfe-customers`                        |
+| `accounts`  | `projects/mfe-accounts`                         |
+| `mocks`     | `mocks/` — shared MSW handlers and fixture data |
+| `deps`      | Dependency updates                              |
+| `ci`        | CI/CD pipeline                                  |
+| `release`   | Version bumps / changelogs                      |
+
+### Rules
+
+- **Subject** must be lowercase and must not end with a period
+- **Subject** must not be empty
+- **Type** must be one of the values listed above
+- **Scope** must be one of the values listed above (when provided)
+- **Header** (type + scope + subject) must not exceed **100 characters**
+
+### Examples
+
+```bash
+# Valid
+feat(customers): add search filter to customer list
+fix(accounts): correct balance rounding on detail page
+test(shell): add router-outlet assertion to app spec
+chore(deps): upgrade angular to 21.2.0
+docs: update README with commit conventions
+refactor(accounts): extract balance formatter to shared pipe
+ci: add lint step to github actions workflow
+
+# Invalid — rejected by commitlint
+qwe                              # no type
+added search filter              # no type
+feat: Added search filter        # subject must be lowercase
+feat(payments): add filter       # unknown scope
+fix(accounts): correct balance.  # subject must not end with a period
+```
+
+---
+
 ## Running tests
 
 The test suite uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test` with `HttpTestingController` for HTTP interception. **No running servers are required.**
