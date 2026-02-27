@@ -22,7 +22,8 @@
     "build:mfe-customers": "ng build mfe-customers",
     "build:mfe-accounts": "ng build mfe-accounts",
     "build:shell": "ng build shell",
-    "build:all": "npm run build:mfe-customers && npm run build:mfe-accounts && npm run build:shell"
+    "build:all": "npm run build:mfe-customers && npm run build:mfe-accounts && npm run build:shell",
+    "format": "prettier --write \"projects/**/*.{ts,html,scss}\""
   },
   "prettier": {
     "printWidth": 100,
@@ -67,6 +68,7 @@
     "concurrently": "9.2.1",
     "jsdom": "^27.1.0",
     "msw": "^2.12.10",
+    "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   },

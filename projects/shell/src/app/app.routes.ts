@@ -14,8 +14,7 @@ export const routes: Routes = [
   },
   {
     path: 'accounts',
-    loadChildren: () =>
-      loadRemoteModule('mfe-accounts', './Routes').then((m) => m.ACCOUNTS_ROUTES),
+    loadChildren: () => loadRemoteModule('mfe-accounts', './Routes').then((m) => m.ACCOUNTS_ROUTES),
   },
   {
     path: '**',

@@ -1,6 +1,6 @@
-import { createRequire } from "module";
+import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const cors = require("cors");
+const cors = require('cors');
 import {
   AngularNodeAppEngine,
   createNodeRequestHandler,
@@ -13,8 +13,8 @@ import { join } from 'node:path';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-	app.use(cors());
-  app.set('view engine', 'html');
+app.use(cors());
+app.set('view engine', 'html');
 const angularApp = new AngularNodeAppEngine();
 
 /**
@@ -46,9 +46,7 @@ app.use(
 app.use((req, res, next) => {
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then((response) => (response ? writeResponseToNodeResponse(response, res) : next()))
     .catch(next);
 });
 

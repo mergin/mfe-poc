@@ -1,8 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
@@ -143,9 +140,9 @@ describe('CustomerDetailComponent', () => {
     fixture.detectChanges();
 
     // ASSERT
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent,
-    ).toContain('not found');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent).toContain(
+      'not found',
+    );
   });
 
   it('should reload data when the id input changes', async () => {

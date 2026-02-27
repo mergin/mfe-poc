@@ -7,10 +7,7 @@ describe('App (mfe-customers)', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        provideZonelessChangeDetection(),
-        provideRouter([]),
-      ],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
   });
 
