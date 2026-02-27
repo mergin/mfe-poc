@@ -19,8 +19,22 @@ export default defineConfig([
     extends: tseslint.configs.recommended,
   },
 
-  // JSON files configuration
-  { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
+  // JSONC files — JSON with comments (tsconfigs, VS Code config, *.jsonc)
+  {
+    files: ['**/tsconfig*.json', '**/.vscode/*.json', '**/*.jsonc'],
+    plugins: { json },
+    language: 'json/jsonc',
+    extends: ['json/recommended'],
+  },
+
+  // JSON files — strict JSON (no comments); tsconfigs and VS Code files excluded above
+  {
+    files: ['**/*.json'],
+    ignores: ['**/tsconfig*.json', '**/.vscode/*.json', '**/*.jsonc'],
+    plugins: { json },
+    language: 'json/json',
+    extends: ['json/recommended'],
+  },
 
   // CSS files configuration
   { files: ['**/*.css'], plugins: { css }, language: 'css/css', extends: ['css/recommended'] },

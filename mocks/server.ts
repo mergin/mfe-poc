@@ -6,6 +6,7 @@
 import { setupServer } from 'msw/node';
 import { customerHandlers } from './handlers/customers';
 import { accountHandlers } from './handlers/accounts';
+import { afterAll, afterEach, beforeAll } from 'vitest';
 
 export const server = setupServer(...customerHandlers, ...accountHandlers);
 

@@ -147,3 +147,23 @@ For every component, write tests covering:
 5. **Links** — assert `href` or `textContent` of anchor elements
 6. **Error state** — flush with `{ status: 4xx/5xx }` and assert `.error` element
 7. **Input reactivity** — for components with `input.required<string>()`, assert a reload occurs after `setInput()`
+
+## Known Warnings
+
+### `unit-test` builder / Native Federation compatibility
+
+When running tests you will see:
+
+```
+The 'buildTarget' is configured to use '@angular-architects/native-federation:build',
+which is not supported. The 'unit-test' builder is designed to work with
+'@angular/build:application' or '@angular/build:ng-packagr'.
+Unexpected behavior or build failures may occur.
+```
+
+**This is a false alarm — ignore it.** The `@angular/build:unit-test` builder checks the project's
+`build` architect target and warns when it is not the standard `@angular/build:application`. Native
+Federation replaces that builder with its own wrapper (`@angular-architects/native-federation:build`),
+which is itself a thin wrapper around `@angular/build:application`. The unit-test builder runs its
+own Vite/Vitest pipeline and does not actually invoke the federation build, so the warning has no
+effect on test correctness or coverage. All tests still compile and run normally.
