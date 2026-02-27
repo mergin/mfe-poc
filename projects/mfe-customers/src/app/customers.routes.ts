@@ -13,7 +13,7 @@ export const CUSTOMERS_ROUTES: Routes = [
         title: 'Customers',
         loadComponent: () =>
           import('./customers/customer-list/customer-list.component').then(
-            (m) => m.CustomerListComponent,
+            m => m.CustomerListComponent,
           ),
       },
       {
@@ -21,7 +21,7 @@ export const CUSTOMERS_ROUTES: Routes = [
         title: 'Customer Detail',
         loadComponent: () =>
           import('./customers/customer-detail/customer-detail.component').then(
-            (m) => m.CustomerDetailComponent,
+            m => m.CustomerDetailComponent,
           ),
       },
     ],

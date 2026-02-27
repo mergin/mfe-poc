@@ -12,7 +12,11 @@ import type { Account } from '../account-list/account-list.component';
   imports: [RouterLink, DecimalPipe],
   template: `
     <div class="mfe-container">
-      <a routerLink=".." class="back-link">← Back to accounts</a>
+      <a
+        routerLink=".."
+        class="back-link"
+        >← Back to accounts</a
+      >
 
       @if (account.isLoading()) {
         <p class="state-msg">Loading…</p>

@@ -63,7 +63,7 @@ describe('authInterceptor', () => {
     http.get('/api/data', { params: { page: '1' } }).subscribe();
 
     // ASSERT
-    const req = controller.expectOne((r) => r.url === '/api/data');
+    const req = controller.expectOne(r => r.url === '/api/data');
     expect(req.request.params.get('page')).toBe('1');
 
     // CLEANUP

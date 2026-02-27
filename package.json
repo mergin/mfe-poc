@@ -27,18 +27,20 @@
     "lint:mfe-customers": "ng lint mfe-customers --fix",
     "lint:mfe-accounts": "ng lint mfe-accounts --fix",
     "lint": "npm run lint:shell && npm run lint:mfe-customers && npm run lint:mfe-accounts",
-    "format": "prettier --write \"projects/**/*.{ts,html,scss}\""
+    "format": "prettier --write \"projects/**/*.{ts,html,scss}\"",
+    "prepare": "husky"
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
+  "lint-staged": {
+    "projects/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "projects/**/*.html": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "projects/**/*.scss": [
+      "prettier --write"
     ]
   },
   "private": true,
@@ -77,7 +79,9 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "lint-staged": "^16.2.7",
     "msw": "^2.12.10",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

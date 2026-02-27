@@ -11,7 +11,11 @@ import type { Customer } from '../customer-list/customer-list.component';
   imports: [RouterLink],
   template: `
     <div class="mfe-container">
-      <a routerLink=".." class="back-link">← Back to customers</a>
+      <a
+        routerLink=".."
+        class="back-link"
+        >← Back to customers</a
+      >
 
       @if (customer.isLoading()) {
         <p class="state-msg">Loading…</p>

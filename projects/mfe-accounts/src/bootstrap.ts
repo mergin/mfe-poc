@@ -10,4 +10,4 @@ async function bootstrap() {
   return bootstrapApplication(App, appConfig);
 }
 
-bootstrap().catch((err) => console.error(err));
+bootstrap().catch(err => console.error(err));

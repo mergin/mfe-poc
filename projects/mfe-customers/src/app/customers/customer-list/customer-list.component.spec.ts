@@ -104,8 +104,8 @@ describe('CustomerListComponent', () => {
     const badges = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.badge'),
     );
-    expect(badges.some((b) => b.classList.contains('badge--active'))).toBe(true);
-    expect(badges.some((b) => b.classList.contains('badge--inactive'))).toBe(true);
+    expect(badges.some(b => b.classList.contains('badge--active'))).toBe(true);
+    expect(badges.some(b => b.classList.contains('badge--inactive'))).toBe(true);
   });
 
   it('should render a "View →" link for each customer', async () => {
@@ -121,7 +121,7 @@ describe('CustomerListComponent', () => {
     // ASSERT
     const links = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody a');
     expect(links.length).toBe(customersDb.length);
-    links.forEach((link) => expect(link.textContent).toContain('View'));
+    links.forEach(link => expect(link.textContent).toContain('View'));
   });
 
   it('should show error state when the API returns an error', async () => {

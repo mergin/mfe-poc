@@ -42,7 +42,7 @@ describe('App (shell)', () => {
     const anchors = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.shell-nav a'),
     );
-    const labels = anchors.map((a) => a.textContent?.trim());
+    const labels = anchors.map(a => a.textContent?.trim());
     expect(labels).toContain('Customers');
     expect(labels).toContain('Accounts');
   });

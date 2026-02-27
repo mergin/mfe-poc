@@ -120,9 +120,9 @@ describe('AccountListComponent', () => {
     const badges = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.badge'),
     );
-    expect(badges.some((b) => b.classList.contains('badge--checking'))).toBe(true);
-    expect(badges.some((b) => b.classList.contains('badge--savings'))).toBe(true);
-    expect(badges.some((b) => b.classList.contains('badge--credit'))).toBe(true);
+    expect(badges.some(b => b.classList.contains('badge--checking'))).toBe(true);
+    expect(badges.some(b => b.classList.contains('badge--savings'))).toBe(true);
+    expect(badges.some(b => b.classList.contains('badge--credit'))).toBe(true);
   });
 
   it('should render a "View →" link for each account', async () => {
@@ -138,7 +138,7 @@ describe('AccountListComponent', () => {
     // ASSERT
     const links = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody a');
     expect(links.length).toBe(accountsDb.length);
-    links.forEach((link) => expect(link.textContent).toContain('View'));
+    links.forEach(link => expect(link.textContent).toContain('View'));
   });
 
   it('should show error state when the API returns an error', async () => {

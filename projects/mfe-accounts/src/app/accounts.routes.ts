@@ -13,7 +13,7 @@ export const ACCOUNTS_ROUTES: Routes = [
         title: 'Accounts',
         loadComponent: () =>
           import('./accounts/account-list/account-list.component').then(
-            (m) => m.AccountListComponent,
+            m => m.AccountListComponent,
           ),
       },
       {
@@ -21,7 +21,7 @@ export const ACCOUNTS_ROUTES: Routes = [
         title: 'Account Detail',
         loadComponent: () =>
           import('./accounts/account-detail/account-detail.component').then(
-            (m) => m.AccountDetailComponent,
+            m => m.AccountDetailComponent,
           ),
       },
     ],
