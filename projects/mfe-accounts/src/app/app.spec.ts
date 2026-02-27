@@ -15,13 +15,21 @@ describe('App (mfe-accounts)', () => {
   });
 
   it('should create the mfe-accounts app component', () => {
+    // ARRANGE
     const fixture = TestBed.createComponent(App);
+
+    // ASSERT
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should render a router-outlet', async () => {
+    // ARRANGE
     const fixture = TestBed.createComponent(App);
+
+    // ACT
     await fixture.whenStable();
+
+    // ASSERT
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('router-outlet')).toBeTruthy();
   });

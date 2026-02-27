@@ -37,44 +37,64 @@ describe('AccountDetailComponent', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
   it('should create', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
+
+    // ACT — detectChanges() triggers resource() which fires the HTTP request
     fixture.detectChanges();
+
+    // ASSERT
     expect(fixture.componentInstance).toBeTruthy();
+
+    // CLEANUP — flush pending request so afterEach controller.verify() passes
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
   });
 
   it('should show loading state before data arrives', async () => {
+    // ARRANGE
     const { fixture } = await setup(account.id);
+
+    // ACT — resource() fires immediately; loading state is visible before flush
     fixture.detectChanges();
+
+    // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.state-msg')?.textContent,
     ).toContain('Loading');
+
+    // CLEANUP
     TestBed.inject(HttpTestingController)
       .expectOne(`${BASE}/accounts/${account.id}`)
       .flush(account);
   });
 
   it('should render account number in the heading', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
       account.accountNumber,
     );
   });
 
   it('should render all detail fields (id, type, currency, ownerId)', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain(account.id);
     expect(text).toContain(account.type);
@@ -83,76 +103,89 @@ describe('AccountDetailComponent', () => {
   });
 
   it('should format the balance with 2 decimal places', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // balance = 4250.75 → "4,250.75"
+    // ASSERT — balance = 4250.75 → "4,250.75"
     const balanceEl = (fixture.nativeElement as HTMLElement).querySelector('.balance');
     expect(balanceEl?.textContent).toContain('4,250.75');
     expect(balanceEl?.textContent).toContain('EUR');
   });
 
   it('should apply the correct badge class for the account type', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     const badge = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.badge');
     expect(badge?.classList.contains(`badge--${account.type}`)).toBe(true);
   });
 
   it('should render a back link', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.back-link')?.textContent,
     ).toContain('Back');
   });
 
   it('should show error state when the API returns 404', async () => {
+    // ARRANGE
     const { fixture, controller } = await setup('a-999');
-    fixture.detectChanges();
 
+    // ACT
+    fixture.detectChanges();
     controller
       .expectOne(`${BASE}/accounts/a-999`)
       .flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent,
     ).toContain('not found');
   });
 
   it('should reload data when the id input changes', async () => {
+    // ARRANGE
     const secondAccount = accountsDb[1]; // ES12-0049-0002 — savings
-
     const { fixture, controller } = await setup(account.id);
-    fixture.detectChanges();
 
+    // ACT — initial load
+    fixture.detectChanges();
     controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ACT — trigger input change
     fixture.componentRef.setInput('id', secondAccount.id);
     fixture.detectChanges();
-
     controller.expectOne(`${BASE}/accounts/${secondAccount.id}`).flush(secondAccount);
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
       secondAccount.accountNumber,
     );
