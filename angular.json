@@ -44,6 +44,15 @@
 				"test": {
 					"builder": "@angular/build:unit-test"
 				},
+				"lint": {
+					"builder": "@angular-eslint/builder:lint",
+					"options": {
+						"lintFilePatterns": [
+							"projects/shell/src/**/*.ts",
+							"projects/shell/src/**/*.html"
+						]
+					}
+				},
 				"esbuild": {
 					"builder": "@angular/build:application",
 					"options": {
@@ -145,6 +154,15 @@
 				"test": {
 					"builder": "@angular/build:unit-test"
 				},
+				"lint": {
+					"builder": "@angular-eslint/builder:lint",
+					"options": {
+						"lintFilePatterns": [
+							"projects/mfe-customers/src/**/*.ts",
+							"projects/mfe-customers/src/**/*.html"
+						]
+					}
+				},
 				"esbuild": {
 					"builder": "@angular/build:application",
 					"options": {
@@ -245,6 +263,15 @@
 				},
 				"test": {
 					"builder": "@angular/build:unit-test"
+				},
+				"lint": {
+					"builder": "@angular-eslint/builder:lint",
+					"options": {
+						"lintFilePatterns": [
+							"projects/mfe-accounts/src/**/*.ts",
+							"projects/mfe-accounts/src/**/*.html"
+						]
+					}
 				},
 				"esbuild": {
 					"builder": "@angular/build:application",

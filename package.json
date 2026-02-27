@@ -23,6 +23,10 @@
     "build:mfe-accounts": "ng build mfe-accounts",
     "build:shell": "ng build shell",
     "build:all": "npm run build:mfe-customers && npm run build:mfe-accounts && npm run build:shell",
+    "lint:shell": "ng lint shell --fix",
+    "lint:mfe-customers": "ng lint mfe-customers --fix",
+    "lint:mfe-accounts": "ng lint mfe-accounts --fix",
+    "lint": "npm run lint:shell && npm run lint:mfe-customers && npm run lint:mfe-accounts",
     "format": "prettier --write \"projects/**/*.{ts,html,scss}\""
   },
   "prettier": {
@@ -62,14 +66,22 @@
     "@angular/build": "^21.1.5",
     "@angular/cli": "^21.1.5",
     "@angular/compiler-cli": "^21.1.0",
+    "@eslint/css": "^0.14.1",
+    "@eslint/js": "^9.39.3",
+    "@eslint/json": "^1.0.1",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "@vitest/coverage-v8": "^4.0.18",
+    "angular-eslint": "21.2.0",
     "concurrently": "9.2.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.3.0",
     "jsdom": "^27.1.0",
     "msw": "^2.12.10",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
+    "typescript-eslint": "8.50.1",
     "vitest": "^4.0.8"
   },
   "msw": {

@@ -1,0 +1,51 @@
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import json from '@eslint/json';
+import css from '@eslint/css';
+import angular from 'angular-eslint';
+import { defineConfig } from 'eslint/config';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+
+export default defineConfig([
+  {
+    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
+    plugins: { js },
+    extends: ['js/recommended'],
+    languageOptions: { globals: globals.browser },
+  },
+  {
+    files: ['**/*.{ts,mts,cts}'],
+    extends: tseslint.configs.recommended,
+  },
+
+  // JSON files configuration
+  { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
+
+  // CSS files configuration
+  { files: ['**/*.css'], plugins: { css }, language: 'css/css', extends: ['css/recommended'] },
+
+  // HTML template files configuration
+  {
+    files: ['**/*.html'],
+    plugins: {
+      '@angular-eslint/template': angular.templatePlugin,
+    },
+    languageOptions: {
+      parser: angular.templateParser,
+    },
+    rules: {
+      '@angular-eslint/template/prefer-self-closing-tags': 'error',
+      '@angular-eslint/template/prefer-ngsrc': 'warn',
+      '@angular-eslint/template/prefer-control-flow': 'error',
+      '@angular-eslint/template/cyclomatic-complexity': [
+        'off',
+        {
+          maxComplexity: 10,
+        },
+      ],
+      '@angular-eslint/template/eqeqeq': 'error',
+    },
+  },
+  eslintConfigPrettier,
+]);
