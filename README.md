@@ -330,19 +330,18 @@ Commit messages are enforced by [commitlint](https://commitlint.js.org/) using t
 
 ### Types
 
-| Type       | When to use                                          |
-| ---------- | ---------------------------------------------------- |
-| `feat`     | A new feature                                        |
-| `fix`      | A bug fix                                            |
-| `docs`     | Documentation changes only                           |
-| `style`    | Formatting, whitespace — no logic change             |
-| `refactor` | Code change that is neither a fix nor a feature      |
-| `perf`     | Performance improvement                              |
-| `test`     | Adding or updating tests                             |
-| `chore`    | Build process, tooling, dependency updates           |
-| `build`    | Changes to the build system or external dependencies |
-| `ci`       | CI/CD configuration changes                          |
-| `revert`   | Reverts a previous commit                            |
+| Type       | When to use                                     |
+| ---------- | ----------------------------------------------- |
+| `feat`     | A new feature                                   |
+| `fix`      | A bug fix                                       |
+| `docs`     | Documentation changes only                      |
+| `style`    | Formatting, whitespace — no logic change        |
+| `refactor` | Code change that is neither a fix nor a feature |
+| `perf`     | Performance improvement                         |
+| `test`     | Adding or updating tests                        |
+| `build`    | Build process, tooling, dependency updates      |
+| `ci`       | CI/CD configuration changes                     |
+| `revert`   | Reverts a previous commit                       |
 
 ### Scopes
 
@@ -373,7 +372,7 @@ Scopes are optional but recommended. Allowed values are restricted to this monor
 feat(customers): add search filter to customer list
 fix(accounts): correct balance rounding on detail page
 test(shell): add router-outlet assertion to app spec
-chore(deps): upgrade angular to 21.2.0
+build(deps): upgrade angular to 21.2.0
 docs: update README with commit conventions
 refactor(accounts): extract balance formatter to shared pipe
 ci: add lint step to github actions workflow
@@ -384,6 +383,7 @@ added search filter              # no type
 feat: Added search filter        # subject must be lowercase
 feat(payments): add filter       # unknown scope
 fix(accounts): correct balance.  # subject must not end with a period
+chore(deps): bump typescript     # `chore` is not a valid type — use `build`
 ```
 
 ---
