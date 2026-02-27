@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, resource } from '@angular/c
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { API_BASE_URL } from '../../core/api.config';
 
 export interface Customer {
@@ -14,22 +15,22 @@ export interface Customer {
 @Component({
   selector: 'app-customer-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   template: `
     <div class="mfe-container">
-      <h1>Customers</h1>
+      <h1>{{ 'customers.list.title' | translate }}</h1>
 
       @if (customers.isLoading()) {
-        <p class="state-msg">Loading customers…</p>
+        <p class="state-msg">{{ 'customers.list.loading' | translate }}</p>
       } @else if (customers.error()) {
-        <p class="state-msg error">Failed to load customers. Please try again.</p>
+        <p class="state-msg error">{{ 'customers.list.error' | translate }}</p>
       } @else {
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Status</th>
+              <th>{{ 'customers.detail.fields.name' | translate }}</th>
+              <th>{{ 'customers.detail.fields.email' | translate }}</th>
+              <th>{{ 'customers.detail.fields.status' | translate }}</th>
               <th></th>
             </tr>
           </thead>
@@ -40,7 +41,7 @@ export interface Customer {
                 <td>{{ customer.email }}</td>
                 <td>
                   <span [class]="'badge badge--' + customer.status">
-                    {{ customer.status }}
+                    {{ 'customers.detail.status.' + customer.status | translate }}
                   </span>
                 </td>
                 <td>

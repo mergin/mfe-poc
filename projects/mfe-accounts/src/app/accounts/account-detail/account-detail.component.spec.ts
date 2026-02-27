@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 
 import { AccountDetailComponent } from './account-detail.component';
 import { API_BASE_URL } from '../../core/api.config';
@@ -11,6 +12,7 @@ import { accountsDb } from '@mocks/db';
 const BASE = 'https://api-gateway.example.com/v1';
 
 async function setup(id: string) {
+  TestBed.resetTestingModule();
   await TestBed.configureTestingModule({
     imports: [AccountDetailComponent],
     providers: [
@@ -19,6 +21,8 @@ async function setup(id: string) {
       provideHttpClientTesting(),
       provideRouter([]),
       { provide: API_BASE_URL, useValue: BASE },
+      // No loader — keys are returned as-is in tests (no HTTP request for translations).
+      provideTranslateService(),
     ],
   }).compileComponents();
 
@@ -57,7 +61,7 @@ describe('AccountDetailComponent', () => {
     // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.state-msg')?.textContent,
-    ).toContain('Loading');
+    ).toContain('accounts.detail.loading');
 
     // CLEANUP
     TestBed.inject(HttpTestingController)
@@ -143,7 +147,7 @@ describe('AccountDetailComponent', () => {
     // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.back-link')?.textContent,
-    ).toContain('Back');
+    ).toContain('accounts.list.title');
   });
 
   it('should show error state when the API returns 404', async () => {
@@ -160,7 +164,7 @@ describe('AccountDetailComponent', () => {
 
     // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent).toContain(
-      'not found',
+      'accounts.detail.error',
     );
   });
 

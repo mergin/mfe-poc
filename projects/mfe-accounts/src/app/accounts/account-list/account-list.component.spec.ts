@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 
 import { AccountListComponent } from './account-list.component';
 import { API_BASE_URL } from '../../core/api.config';
@@ -11,6 +12,7 @@ import { accountsDb } from '@mocks/db';
 const BASE = 'https://api-gateway.example.com/v1';
 
 async function setup() {
+  TestBed.resetTestingModule();
   await TestBed.configureTestingModule({
     imports: [AccountListComponent],
     providers: [
@@ -19,6 +21,8 @@ async function setup() {
       provideHttpClientTesting(),
       provideRouter([]),
       { provide: API_BASE_URL, useValue: BASE },
+      // No loader — keys are returned as-is in tests (no HTTP request for translations).
+      provideTranslateService(),
     ],
   }).compileComponents();
 
@@ -53,7 +57,7 @@ describe('AccountListComponent', () => {
 
     // ASSERT
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.state-msg')?.textContent).toContain('Loading');
+    expect(el.querySelector('.state-msg')?.textContent).toContain('accounts.list.loading');
 
     // CLEANUP
     TestBed.inject(HttpTestingController).expectOne(`${BASE}/accounts`).flush([]);
@@ -155,7 +159,7 @@ describe('AccountListComponent', () => {
 
     // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent).toContain(
-      'Failed to load',
+      'accounts.list.error',
     );
   });
 });

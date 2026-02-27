@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 
 import { CustomerListComponent } from './customer-list.component';
 import { API_BASE_URL } from '../../core/api.config';
@@ -11,6 +12,7 @@ import { customersDb } from '@mocks/db';
 const BASE = 'https://api-gateway.example.com/v1';
 
 async function setup() {
+  TestBed.resetTestingModule();
   await TestBed.configureTestingModule({
     imports: [CustomerListComponent],
     providers: [
@@ -19,6 +21,8 @@ async function setup() {
       provideHttpClientTesting(),
       provideRouter([]),
       { provide: API_BASE_URL, useValue: BASE },
+      // No loader — keys are returned as-is in tests (no HTTP request for translations).
+      provideTranslateService(),
     ],
   }).compileComponents();
 
@@ -53,7 +57,7 @@ describe('CustomerListComponent', () => {
 
     // ASSERT
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.state-msg')?.textContent).toContain('Loading');
+    expect(el.querySelector('.state-msg')?.textContent).toContain('customers.list.loading');
 
     // CLEANUP
     TestBed.inject(HttpTestingController).expectOne(`${BASE}/customers`).flush([]);
@@ -138,6 +142,6 @@ describe('CustomerListComponent', () => {
 
     // ASSERT
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.error')?.textContent).toContain('Failed to load');
+    expect(el.querySelector('.error')?.textContent).toContain('customers.list.error');
   });
 });

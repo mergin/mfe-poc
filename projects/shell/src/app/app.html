@@ -7,14 +7,14 @@
     <a
       routerLink="/customers"
       routerLinkActive="active"
-      aria-label="Customers"
-      >Customers</a
+      [attr.aria-label]="'nav.customers' | translate"
+      >{{ 'nav.customers' | translate }}</a
     >
     <a
       routerLink="/accounts"
       routerLinkActive="active"
-      aria-label="Accounts"
-      >Accounts</a
+      [attr.aria-label]="'nav.accounts' | translate"
+      >{{ 'nav.accounts' | translate }}</a
     >
   </nav>
 </header>

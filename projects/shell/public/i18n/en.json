@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "customers": "Customers",
+    "accounts": "Accounts"
+  },
+  "customers": {
+    "list": {
+      "title": "Customers",
+      "loading": "Loading customers…",
+      "error": "Failed to load customers."
+    },
+    "detail": {
+      "title": "Customer detail",
+      "loading": "Loading customer…",
+      "error": "Failed to load customer.",
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    }
+  },
+  "accounts": {
+    "list": {
+      "title": "Accounts",
+      "loading": "Loading accounts…",
+      "error": "Failed to load accounts."
+    },
+    "detail": {
+      "title": "Account detail",
+      "loading": "Loading account…",
+      "error": "Failed to load account.",
+      "fields": {
+        "accountNumber": "Account number",
+        "type": "Type",
+        "balance": "Balance",
+        "currency": "Currency"
+      },
+      "type": {
+        "checking": "Checking",
+        "savings": "Savings",
+        "credit": "Credit"
+      }
+    }
+  }
+}

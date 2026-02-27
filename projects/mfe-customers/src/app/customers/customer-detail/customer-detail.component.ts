@@ -2,36 +2,39 @@ import { ChangeDetectionStrategy, Component, inject, input, resource } from '@an
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { API_BASE_URL } from '../../core/api.config';
 import type { Customer } from '../customer-list/customer-list.component';
 
 @Component({
   selector: 'app-customer-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   template: `
     <div class="mfe-container">
       <a
         routerLink=".."
         class="back-link"
-        >← Back to customers</a
+        >← {{ 'customers.list.title' | translate }}</a
       >
 
       @if (customer.isLoading()) {
-        <p class="state-msg">Loading…</p>
+        <p class="state-msg">{{ 'customers.detail.loading' | translate }}</p>
       } @else if (customer.error()) {
-        <p class="state-msg error">Customer not found.</p>
+        <p class="state-msg error">{{ 'customers.detail.error' | translate }}</p>
       } @else {
         @let c = customer.value()!;
         <h1>{{ c.name }}</h1>
         <dl class="detail-grid">
           <dt>ID</dt>
           <dd>{{ c.id }}</dd>
-          <dt>Email</dt>
+          <dt>{{ 'customers.detail.fields.email' | translate }}</dt>
           <dd>{{ c.email }}</dd>
-          <dt>Status</dt>
+          <dt>{{ 'customers.detail.fields.status' | translate }}</dt>
           <dd>
-            <span [class]="'badge badge--' + c.status">{{ c.status }}</span>
+            <span [class]="'badge badge--' + c.status">{{
+              'customers.detail.status.' + c.status | translate
+            }}</span>
           </dd>
         </dl>
       }

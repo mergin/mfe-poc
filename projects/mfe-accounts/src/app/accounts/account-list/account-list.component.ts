@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { API_BASE_URL } from '../../core/api.config';
 
 export interface Account {
@@ -17,22 +18,22 @@ export interface Account {
 @Component({
   selector: 'app-account-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, TranslatePipe],
   template: `
     <div class="mfe-container">
-      <h1>Accounts</h1>
+      <h1>{{ 'accounts.list.title' | translate }}</h1>
 
       @if (accounts.isLoading()) {
-        <p class="state-msg">Loading accounts…</p>
+        <p class="state-msg">{{ 'accounts.list.loading' | translate }}</p>
       } @else if (accounts.error()) {
-        <p class="state-msg error">Failed to load accounts. Please try again.</p>
+        <p class="state-msg error">{{ 'accounts.list.error' | translate }}</p>
       } @else {
         <table>
           <thead>
             <tr>
-              <th>Account No.</th>
-              <th>Type</th>
-              <th>Balance</th>
+              <th>{{ 'accounts.detail.fields.accountNumber' | translate }}</th>
+              <th>{{ 'accounts.detail.fields.type' | translate }}</th>
+              <th>{{ 'accounts.detail.fields.balance' | translate }}</th>
               <th>Owner ID</th>
               <th></th>
             </tr>
@@ -42,7 +43,9 @@ export interface Account {
               <tr>
                 <td>{{ account.accountNumber }}</td>
                 <td>
-                  <span [class]="'badge badge--' + account.type">{{ account.type }}</span>
+                  <span [class]="'badge badge--' + account.type">{{
+                    'accounts.detail.type.' + account.type | translate
+                  }}</span>
                 </td>
                 <td class="balance">
                   {{ account.balance | number: '1.2-2' }} {{ account.currency }}

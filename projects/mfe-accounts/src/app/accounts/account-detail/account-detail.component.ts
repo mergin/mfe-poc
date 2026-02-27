@@ -3,36 +3,39 @@ import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { API_BASE_URL } from '../../core/api.config';
 import type { Account } from '../account-list/account-list.component';
 
 @Component({
   selector: 'app-account-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, TranslatePipe],
   template: `
     <div class="mfe-container">
       <a
         routerLink=".."
         class="back-link"
-        >← Back to accounts</a
+        >← {{ 'accounts.list.title' | translate }}</a
       >
 
       @if (account.isLoading()) {
-        <p class="state-msg">Loading…</p>
+        <p class="state-msg">{{ 'accounts.detail.loading' | translate }}</p>
       } @else if (account.error()) {
-        <p class="state-msg error">Account not found.</p>
+        <p class="state-msg error">{{ 'accounts.detail.error' | translate }}</p>
       } @else {
         @let a = account.value()!;
-        <h1>Account {{ a.accountNumber }}</h1>
+        <h1>{{ 'accounts.detail.fields.accountNumber' | translate }} {{ a.accountNumber }}</h1>
         <dl class="detail-grid">
           <dt>ID</dt>
           <dd>{{ a.id }}</dd>
-          <dt>Type</dt>
+          <dt>{{ 'accounts.detail.fields.type' | translate }}</dt>
           <dd>
-            <span [class]="'badge badge--' + a.type">{{ a.type }}</span>
+            <span [class]="'badge badge--' + a.type">{{
+              'accounts.detail.type.' + a.type | translate
+            }}</span>
           </dd>
-          <dt>Balance</dt>
+          <dt>{{ 'accounts.detail.fields.balance' | translate }}</dt>
           <dd class="balance">{{ a.balance | number: '1.2-2' }} {{ a.currency }}</dd>
           <dt>Owner ID</dt>
           <dd>{{ a.ownerId }}</dd>

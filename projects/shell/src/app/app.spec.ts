@@ -1,13 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { App } from './app';
 
 describe('App (shell)', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideZonelessChangeDetection(), provideRouter([])],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([]),
+        // No loader — keys are returned as-is in tests (no HTTP request for translations).
+        provideTranslateService(),
+      ],
     }).compileComponents();
   });
 
@@ -43,8 +49,8 @@ describe('App (shell)', () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('.shell-nav a'),
     );
     const labels = anchors.map(a => a.textContent?.trim());
-    expect(labels).toContain('Customers');
-    expect(labels).toContain('Accounts');
+    expect(labels).toContain('nav.customers');
+    expect(labels).toContain('nav.accounts');
   });
 
   it('should have a <main> element with router-outlet', async () => {

@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { provideTranslateService } from '@ngx-translate/core';
 
 import { CustomerDetailComponent } from './customer-detail.component';
 import { API_BASE_URL } from '../../core/api.config';
@@ -11,6 +12,7 @@ import { customersDb } from '@mocks/db';
 const BASE = 'https://api-gateway.example.com/v1';
 
 async function setup(id: string) {
+  TestBed.resetTestingModule();
   await TestBed.configureTestingModule({
     imports: [CustomerDetailComponent],
     providers: [
@@ -19,6 +21,8 @@ async function setup(id: string) {
       provideHttpClientTesting(),
       provideRouter([]),
       { provide: API_BASE_URL, useValue: BASE },
+      // No loader — keys are returned as-is in tests (no HTTP request for translations).
+      provideTranslateService(),
     ],
   }).compileComponents();
 
@@ -56,7 +60,7 @@ describe('CustomerDetailComponent', () => {
 
     // ASSERT
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.state-msg')?.textContent).toContain('Loading');
+    expect(el.querySelector('.state-msg')?.textContent).toContain('customers.detail.loading');
 
     // CLEANUP
     TestBed.inject(HttpTestingController)
@@ -124,7 +128,7 @@ describe('CustomerDetailComponent', () => {
 
     // ASSERT
     const backLink = (fixture.nativeElement as HTMLElement).querySelector('.back-link');
-    expect(backLink?.textContent).toContain('Back');
+    expect(backLink?.textContent).toContain('customers.list.title');
   });
 
   it('should show error state when the API returns 404', async () => {
@@ -141,7 +145,7 @@ describe('CustomerDetailComponent', () => {
 
     // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent).toContain(
-      'not found',
+      'customers.detail.error',
     );
   });
 

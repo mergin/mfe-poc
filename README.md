@@ -14,6 +14,7 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 - [Commit conventions](#commit-conventions)
 - [Running tests](#running-tests)
 - [API mocking with MSW](#api-mocking-with-msw)
+- [Internationalisation (i18n)](#internationalisation-i18n)
 - [Adapting for production](#adapting-for-production)
 
 ---
@@ -51,6 +52,7 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 | HTTP client       | Provided **once** in the shell; automatically shared with all MFEs                           |
 | Auth              | `authInterceptor` in the shell attaches `Authorization: Bearer <token>` to every request     |
 | API base URL      | `API_BASE_URL` injection token provided in the shell as `https://api-gateway.example.com/v1` |
+| Translations      | `TranslateService` provided **once** in the shell; MFEs use `provideChildTranslateService`   |
 | Change detection  | `OnPush` everywhere                                                                          |
 | State             | Angular `resource()` + signals                                                               |
 | Routing           | `withComponentInputBinding()` — route params map directly to `input()` signals               |
@@ -97,13 +99,18 @@ mfe-poc/
     │           ├── app.html          # Shell layout template
     │           ├── app.routes.ts     # loadRemoteModule → CUSTOMERS_ROUTES / ACCOUNTS_ROUTES
     │           ├── app.routes.server.ts
-    │           ├── app.config.ts     # provideRouter, provideHttpClient + authInterceptor
+    │           ├── app.config.ts     # provideRouter, provideHttpClient, provideTranslateService
     │           ├── app.config.server.ts
     │           ├── app.spec.ts       # Shell root component tests
     │           └── core/
     │               ├── api.config.ts           # InjectionToken<string> API_BASE_URL
     │               ├── auth.interceptor.ts     # HttpInterceptorFn — Bearer token from sessionStorage
     │               └── auth.interceptor.spec.ts
+    │   └── public/
+    │       ├── federation.manifest.json         # Remote entry URLs for mfe-customers & mfe-accounts
+    │       ├── mockServiceWorker.js             # MSW Service Worker
+    │       └── i18n/
+    │           └── en.json                      # English translations (served at /i18n/en.json)
     │
     ├── mfe-customers/                # Customers remote (port 4201)
     │   ├── federation.config.js      # exposes: { './Routes': customers.routes.ts }
@@ -118,7 +125,7 @@ mfe-poc/
     │           ├── app.html
     │           ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-customers)
     │           ├── app.routes.server.ts
-    │           ├── app.config.ts
+    │           ├── app.config.ts     # provideRouter, provideHttpClient, provideChildTranslateService
     │           ├── app.config.server.ts
     │           ├── app.spec.ts
     │           ├── customers.routes.ts   # CUSTOMERS_ROUTES (exposed to shell)
@@ -141,7 +148,7 @@ mfe-poc/
                 ├── app.html
                 ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-accounts)
                 ├── app.routes.server.ts
-                ├── app.config.ts
+                ├── app.config.ts     # provideRouter, provideHttpClient, provideChildTranslateService
                 ├── app.config.server.ts
                 ├── app.spec.ts
                 ├── accounts.routes.ts    # ACCOUNTS_ROUTES (exposed to shell)
@@ -596,6 +603,131 @@ http.get(`${BASE}/customers/:id/orders`, async ({ params }) => {
 MSW's **`msw/node`** (`mocks/server.ts`) is **not used in unit tests**. Importing it causes the `@angular/build:unit-test` Vitest runner to hang indefinitely due to Node HTTP patching conflicts. Unit tests use Angular's `HttpTestingController` instead.
 
 `mocks/server.ts` is kept for use in future **integration or e2e** test suites that run outside the Angular test builder (e.g. Playwright, or a plain Vitest config targeting Node).
+
+---
+
+## Internationalisation (i18n)
+
+Translations are handled by [`@ngx-translate/core`](https://github.com/ngx-translate/core) v17
+with [`@ngx-translate/http-loader`](https://github.com/ngx-translate/http-loader) v17.
+
+### How it works
+
+```
+Bootstrap (shell)
+  └── app.config.ts
+        ├── provideTranslateService({ lang: 'en', defaultLanguage: 'en' })
+        │     └── triggers translate.use('en') at bootstrap
+        │           └── HTTP GET /i18n/en.json  ← loaded once, cached for the session
+        └── provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' })
+```
+
+`TranslateService` is provided **once in the shell** and shared as a singleton with all MFEs via
+Angular's DI tree. Each MFE's `app.config.ts` calls `provideChildTranslateService({ extend: true })`
+— this wires the MFE into the shell's existing service without creating a new instance or firing
+another network request.
+
+Templates use the `TranslatePipe` to render keys:
+
+```html
+<!-- static key -->
+<h1>{{ 'customers.list.title' | translate }}</h1>
+
+<!-- dynamic key (badge label driven by data) -->
+<span [class]="'badge badge--' + customer.status">
+  {{ 'customers.detail.status.' + customer.status | translate }}
+</span>
+```
+
+### Translation files
+
+All translation files live under **`projects/shell/public/i18n/`** — they are served as static
+assets by the shell and loaded at runtime via HTTP.
+
+| File                                 | Language |
+| ------------------------------------ | -------- |
+| `projects/shell/public/i18n/en.json` | English  |
+
+#### Key structure (`en.json`)
+
+```
+nav
+  .customers           Navigation link label
+  .accounts            Navigation link label
+
+customers
+  .list
+    .title             Page heading
+    .loading           Loading state message
+    .error             Error state message
+  .detail
+    .title             Page heading
+    .loading           Loading state message
+    .error             Error state message
+    .fields
+      .name            Field label
+      .email           Field label
+      .status          Field label
+    .status
+      .active          Badge label
+      .inactive        Badge label
+
+accounts
+  .list
+    .title             Page heading
+    .loading           Loading state message
+    .error             Error state message
+  .detail
+    .title             Page heading
+    .loading           Loading state message
+    .error             Error state message
+    .fields
+      .accountNumber   Field label
+      .type            Field label
+      .balance         Field label
+      .currency        Field label
+    .type
+      .checking        Badge label
+      .savings         Badge label
+      .credit          Badge label
+```
+
+### Adding a new language
+
+1. Create `projects/shell/public/i18n/<locale>.json` with the same key structure as `en.json`.
+2. Switch the active language at runtime:
+
+```typescript
+import { inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+
+const translate = inject(TranslateService);
+translate.use('fr'); // triggers GET /i18n/fr.json on first call
+```
+
+The loader caches each locale after the first load — subsequent `use('fr')` calls do not fire a
+new request.
+
+### Translations in unit tests
+
+No HTTP loader is registered in the test environment. `TranslatePipe` therefore returns the raw
+translation key as-is (e.g. `customers.list.title`). All spec files provide the service without a
+loader:
+
+```typescript
+// In setup() — no loader, no HTTP request for translations
+provideTranslateService(),
+```
+
+DOM assertions target the raw key rather than the English string:
+
+```typescript
+// ✅ correct — matches what the pipe returns in tests
+expect(el.querySelector('.error')?.textContent).toContain('customers.list.error');
+
+// ❌ wrong — the English string is never rendered in the test environment
+expect(el.querySelector('.error')?.textContent).toContain('Failed to load');
+```
 
 ---
 
