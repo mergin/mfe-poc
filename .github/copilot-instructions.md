@@ -71,6 +71,25 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Tests should import the spy from the service folder and provide it via the TestBed providers (e.g. `{ provide: MyService, useClass: MyServiceSpy }`). Prefer spies in component/unit tests instead of exercising `HttpTestingController` directly when the intent is to isolate component logic.
 - When generating services, prefer exposing observable-returning methods (e.g. `getAll(): Observable<T[]>`) so callers can easily `of(...)`, `throwError(...)` or use other Rx helpers in tests.
 
+### Deferred service dependency injection
+
+- Services that may be instantiated early (e.g. `providedIn: 'root'`) or whose methods are called from async contexts (e.g. `resource` loaders) must use deferred injection to avoid `NG0201`/`NG0203` errors.
+- Pattern: capture the `Injector` at construction time, then wrap later `inject()` calls inside `runInInjectionContext`:
+
+  ```typescript
+  private readonly _injector = inject(Injector);
+
+  getSomeData(): Observable<Data> {
+    return runInInjectionContext(this._injector, () => {
+      const base = inject(API_BASE_URL, { optional: true }) ?? 'https://default';
+      return inject(HttpClient).get<Data>(`${base}/endpoint`);
+    });
+  }
+  ```
+
+- Use `{ optional: true }` on token injection with a sensible fallback (e.g. default URL) to handle cases where the token is not yet available in the injector hierarchy.
+- This pattern ensures the service can be safely used in federated micro-frontends where provider timing is unpredictable.
+
 ### Models & Interfaces
 
 - All domain models, enums, and shared interfaces go into a `models` directory. Keep models small and focused.
@@ -104,7 +123,10 @@ All generated code must pass `npm run lint` without errors. Key enforced rules:
 
 ### TypeScript (`*.ts`)
 
-- No unused variables (`@typescript-eslint/no-unused-vars`) — remove or prefix with `_` if intentionally unused, but prefer removing
+- **No unused imports or variables:** Always review generated code and remove any imports that are not used. This includes type imports that were added but not referenced in the code. Examples:
+  - ❌ `import type { Customer } from '../../models';` if `Customer` is never referenced
+  - ✅ Remove it entirely or use it in the code (e.g., as a return type or in a test assertion)
+  - Use `@typescript-eslint/no-unused-vars` rule — remove or prefix with `_` if intentionally unused, but prefer removing entirely
 - All `typescript-eslint` recommended rules apply
 
 ### Angular HTML templates (`*.html`)

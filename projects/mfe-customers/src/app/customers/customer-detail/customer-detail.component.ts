@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, input, resource } from '@angular/core';
-import { CustomersService } from '../services/customers';
+import { CustomersService } from '../services';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Customer } from '../../models';
+import type { Customer } from '../../models';
 
 @Component({
   selector: 'app-customer-detail',

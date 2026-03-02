@@ -19,9 +19,6 @@ export class AccountsService {
   getAll(): Observable<Account[]> {
     return runInInjectionContext(this._injector, () => {
       const base = inject(API_BASE_URL, { optional: true }) ?? 'https://api-gateway.example.com/v1';
-      if (!inject(API_BASE_URL, { optional: true })) {
-        console.warn('API_BASE_URL not found in injector; using fallback', base);
-      }
       return inject(HttpClient).get<Account[]>(`${base}/accounts`);
     });
   }
@@ -34,9 +31,6 @@ export class AccountsService {
   get(id: string): Observable<Account> {
     return runInInjectionContext(this._injector, () => {
       const base = inject(API_BASE_URL, { optional: true }) ?? 'https://api-gateway.example.com/v1';
-      if (!inject(API_BASE_URL, { optional: true })) {
-        console.warn('API_BASE_URL not found in injector; using fallback', base);
-      }
       return inject(HttpClient).get<Account>(`${base}/accounts/${id}`);
     });
   }

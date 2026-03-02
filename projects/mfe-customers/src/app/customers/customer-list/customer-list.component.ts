@@ -22,14 +22,6 @@ export class CustomerListComponent {
   private readonly customersService = inject(CustomersService);
 
   protected readonly customers = resource<Customer[], unknown>({
-    loader: async () => {
-      try {
-        const data = await firstValueFrom(this.customersService.getAll());
-        return data;
-      } catch (err) {
-        console.error('customer-list loader caught error', err);
-        throw err;
-      }
-    },
+    loader: () => firstValueFrom(this.customersService.getAll()),
   });
 }
