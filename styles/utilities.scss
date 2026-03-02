@@ -1,0 +1,141 @@
+/**
+ * Global SCSS Utilities & Mixins
+ * Shared across all micro-frontends
+ */
+
+@import './variables';
+
+// ============================================================================
+// Media Query Mixins
+// ============================================================================
+// Usage: @include media(tablet) { ... }
+@mixin media($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $width: map-get($breakpoints, $breakpoint);
+    @media (min-width: $width) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$breakpoint}' not found in $breakpoints map";
+  }
+}
+
+// Mobile-first: target only up to a specific breakpoint
+// Usage: @include media-max(tablet) { ... }
+@mixin media-max($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $width: map-get($breakpoints, $breakpoint);
+    @media (max-width: $width - 1px) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$breakpoint}' not found in $breakpoints map";
+  }
+}
+
+// Shorthand for common responsive patterns
+// Usage: @include on-tablet { ... }
+@mixin on-mobile {
+  @media (max-width: map-get($breakpoints, 'tablet') - 1px) {
+    @content;
+  }
+}
+
+@mixin on-tablet {
+  @include media(tablet) {
+    @content;
+  }
+}
+
+@mixin on-desktop {
+  @include media(desktop) {
+    @content;
+  }
+}
+
+@mixin on-wide {
+  @include media(wide) {
+    @content;
+  }
+}
+
+// ============================================================================
+// Spacing Utility Classes
+// ============================================================================
+// Generates margin and padding classes
+// Examples: margin-top-sm, padding-bottom-lg, margin-left-md, etc.
+
+// Sides: top, bottom, left, right
+// Sizes: sm (8px), md (16px), lg (24px), xl (32px)
+
+@each $side in 'top', 'bottom', 'left', 'right' {
+  @each $size-name, $size-value in $spacing-sizes {
+    // Margin utilities
+    .margin-#{$side}-#{$size-name} {
+      margin-#{$side}: $size-value;
+    }
+
+    // Padding utilities
+    .padding-#{$side}-#{$size-name} {
+      padding-#{$side}: $size-value;
+    }
+  }
+}
+
+// Shorthand helpers for all sides
+@each $size-name, $size-value in $spacing-sizes {
+  .margin-#{$size-name} {
+    margin: $size-value;
+  }
+
+  .padding-#{$size-name} {
+    padding: $size-value;
+  }
+
+  .gap-#{$size-name} {
+    gap: $size-value;
+  }
+}
+
+// ============================================================================
+// Utility Mixins
+// ============================================================================
+
+// Flexbox centering
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Flexbox column (vertical stack)
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Flexbox row (horizontal - default)
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+// Truncate text with ellipsis
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Clamp text to N lines with ellipsis
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Smooth transitions
+@mixin smooth-transition($property: all, $duration: 200ms, $timing: ease-in-out) {
+  transition: $property $duration $timing;
+}

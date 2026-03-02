@@ -142,6 +142,108 @@ All generated code must pass `npm run lint` without errors. Key enforced rules:
 - Run `npm run lint` to check all three projects; `npm run lint:shell`, `npm run lint:mfe-customers`, `npm run lint:mfe-accounts` to check individually
 - All `lint:*` scripts run with `--fix`, so auto-fixable issues are corrected automatically
 
+## Styling — SCSS
+
+All shared SCSS utilities and variables are defined in the `styles/` directory at the workspace root and automatically imported in each project's `styles.scss`.
+
+### Spacing Utilities
+
+Generated utility classes for margins and padding with a consistent 8px spacing scale:
+
+- **Sizes:** `sm` (8px), `md` (16px), `lg` (24px), `xl` (32px)
+- **Margin:** `.margin-top-md`, `.margin-bottom-lg`, `.margin-left-sm`, `.margin-right-xl`
+- **Padding:** `.padding-top-md`, `.padding-bottom-lg`, etc.
+- **Shorthand:** `.margin-md` (applies to all sides), `.padding-lg`, `.gap-sm`
+
+Example:
+
+```html
+<div class="margin-top-md padding-bottom-lg">Content with spacing</div>
+```
+
+### Media Query Mixins
+
+Use these SCSS mixins for responsive design with mobile-first approach:
+
+- **Breakpoints:** `mobile` (320px), `tablet` (768px), `desktop` (1024px), `wide` (1440px)
+
+Available mixins:
+
+- `@include media(tablet) { ... }` — apply styles at or above tablet width
+- `@include media-max(tablet) { ... }` — apply styles below tablet width
+- `@include on-mobile { ... }` — shorthand for mobile (max-width: tablet)
+- `@include on-tablet { ... }` — shorthand for tablet and above
+- `@include on-desktop { ... }` — shorthand for desktop and above
+- `@include on-wide { ... }` — shorthand for wide screens
+
+Example:
+
+```scss
+.card {
+  width: 100%;
+  padding: $spacing-md;
+
+  @include on-tablet {
+    width: 48%;
+  }
+
+  @include on-desktop {
+    width: 32%;
+  }
+}
+```
+
+### Additional Utility Mixins
+
+Common CSS patterns available as mixins:
+
+- `@include flex-center` — center content using flexbox (`align-items: center; justify-content: center`)
+- `@include flex-column` — arrange items vertically
+- `@include flex-row` — arrange items horizontally (default flex direction)
+- `@include truncate` — truncate text with ellipsis (single line)
+- `@include line-clamp(2)` — truncate text to N lines with ellipsis
+- `@include smooth-transition` — smooth transitions (customizable: property, duration, timing)
+
+Example:
+
+```scss
+.container {
+  @include flex-center;
+  height: 100%;
+}
+
+.title {
+  @include line-clamp(3);
+  @include smooth-transition(color, 300ms, ease-out);
+}
+```
+
+### Global Variables
+
+Spacing, breakpoints, colors, and typography are defined in `styles/_variables.scss` and can be used directly in component styles:
+
+```scss
+// Use spacing variables in your component styles
+.section {
+  margin: $spacing-lg;
+  padding: $spacing-md;
+
+  @include media(tablet) {
+    padding: $spacing-lg;
+  }
+}
+
+// Use color variables
+.button {
+  background-color: $color-primary;
+  color: white;
+
+  &:hover {
+    background-color: darken($color-primary, 10%);
+  }
+}
+```
+
 ## Unit Testing
 
 ### Framework & Runner

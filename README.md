@@ -11,6 +11,7 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 - [How to build](#how-to-build)
 - [Server-side rendering (SSR)](#server-side-rendering-ssr)
 - [Linting and formatting](#linting-and-formatting)
+- [Styling](#styling)
 - [Commit conventions](#commit-conventions)
 - [Running tests](#running-tests)
 - [API mocking with MSW](#api-mocking-with-msw)
@@ -45,17 +46,19 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 
 ### Key design decisions
 
-| Concern           | Solution                                                                                     |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| Module federation | `@angular-architects/native-federation` — ES import maps, no Webpack                         |
-| Shared singletons | `shareAll({ singleton: true })` in each `federation.config.js`                               |
-| HTTP client       | Provided **once** in the shell; automatically shared with all MFEs                           |
-| Auth              | `authInterceptor` in the shell attaches `Authorization: Bearer <token>` to every request     |
-| API base URL      | `API_BASE_URL` injection token provided in the shell as `https://api-gateway.example.com/v1` |
-| Translations      | `TranslateService` provided **once** in the shell; MFEs use `provideChildTranslateService`   |
-| Change detection  | `OnPush` everywhere                                                                          |
-| State             | Angular `resource()` + signals                                                               |
-| Routing           | `withComponentInputBinding()` — route params map directly to `input()` signals               |
+| Concern            | Solution                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Module federation  | `@angular-architects/native-federation` — ES import maps, no Webpack                                                                             |
+| Shared singletons  | `shareAll({ singleton: true })` in each `federation.config.js`                                                                                   |
+| HTTP client        | Provided **once** in the shell; automatically shared with all MFEs                                                                               |
+| Auth               | `authInterceptor` in the shell attaches `Authorization: Bearer <token>` to every request                                                         |
+| API base URL       | `API_BASE_URL` injection token provided in the shell as `https://api-gateway.example.com/v1`                                                     |
+| Translations       | `TranslateService` provided **once** in the shell; MFEs use `provideChildTranslateService`                                                       |
+| Change detection   | `OnPush` everywhere                                                                                                                              |
+| State              | Angular `resource()` + signals                                                                                                                   |
+| Routing            | `withComponentInputBinding()` — route params map directly to `input()` signals                                                                   |
+| Deferred injection | Services use `runInInjectionContext` with a captured `Injector` so early/zoneless instantiation can still access `API_BASE_URL` and `HttpClient` |
+| Styling            | Shared SCSS utilities in `styles/` (spacing scale, media-query mixins, utility classes) imported by each project's `styles.scss`                 |
 
 ### Project layout
 
@@ -321,6 +324,56 @@ The hook is installed automatically via the `prepare` script when running `npm i
 
 ---
 
+## Styling
+
+Shared SCSS utilities reside in the top‑level `styles/` directory, which is automatically imported in every project's `src/styles.scss`.
+
+The library includes:
+
+- **Variables:**
+  - Spacing scale (`$spacing-sm`, `$spacing-md`, `$spacing-lg`, `$spacing-xl`)
+  - Breakpoints (`$breakpoint-mobile`, `$breakpoint-tablet`, `$breakpoint-desktop`, `$breakpoint-wide`)
+  - Colors, typography, and other design tokens
+- **Utility classes:** auto‑generated margin/padding/gap helpers such as
+  `.margin-top-md`, `.padding-lg`, `.gap-sm`, and the shorthand `.margin-md`/`.padding-lg`
+- **Responsive mixins:**
+  - `@include media(<breakpoint>)` for min-width queries
+  - Shorthand helpers `@include on-mobile`, `@include on-tablet`, `@include on-desktop`, `@include on-wide`
+- **Helper mixins:**
+  - `@include flex-center`, `@include flex-column`, `@include truncate`, `@include line-clamp(<n>)`,
+    `@include smooth-transition`
+
+Example use in a component stylesheet:
+
+```scss
+.card {
+  @include flex-center;
+  width: 100%;
+  padding: $spacing-md;
+
+  @include on-tablet {
+    width: 48%;
+  }
+
+  @include on-desktop {
+    width: 32%;
+  }
+}
+
+.title {
+  @include line-clamp(3);
+  margin-top: $spacing-lg;
+}
+```
+
+Templates can also leverage the utility classes directly:
+
+```html
+<div class="margin-top-md padding-bottom-lg">Content</div>
+```
+
+---
+
 ## Commit conventions
 
 Commit messages are enforced by [commitlint](https://commitlint.js.org/) using the [`@commitlint/config-angular`](https://github.com/conventional-changelog/commitlint/tree/master/@commitlint/config-angular) preset. The hook runs automatically via Husky on every `git commit`.
@@ -399,6 +452,22 @@ chore(deps): bump typescript     # `chore` is not a valid type — use `build`
 
 The test suite uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test` with `HttpTestingController` for HTTP interception. **No running servers are required.**
 
+### Testing conventions
+
+Common patterns across all projects:
+
+- Each `describe` block defines an `async function setup(...)` factory returning
+  `{ fixture, controller, ... }` to simplify reuse.
+- Providers always include `provideZonelessChangeDetection()` and pairing
+  `provideHttpClient(withFetch())` with `provideHttpClientTesting()`.
+- Components that use router directives call `provideRouter([])`.
+- When HTTP dependencies are injected, tests prefer a spy (`<Service>Spy`) rather
+  than exercising `HttpTestingController` directly.
+- Tests follow the `// ARRANGE` / `// ACT` / `// ASSERT` structure and add a
+  `// CLEANUP` section for any flushes needed solely to satisfy `controller.verify()`.
+- Required `input()` values are set via `fixture.componentRef.setInput(...)` inside
+  the setup factory before returning.
+
 ### Commands
 
 | Command                  | What it does                                                     |
@@ -421,12 +490,30 @@ npm run test:all:log
 
 ### What is tested
 
+Prior to the test stack description, the README currently has the tests table; we want to inject testing conventions above the stack.
+
 | Project         | Spec files | Tests  | What's covered                                                                                                                        |
 | --------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `shell`         | 2          | 8      | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough)                                                  |
 | `mfe-customers` | 3          | 17     | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change) |
 | `mfe-accounts`  | 3          | 19     | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change)  |
 | **Total**       | **8**      | **44** |                                                                                                                                       |
+
+### Testing conventions
+
+Common patterns across all projects:
+
+- Each `describe` block defines an `async function setup(...)` factory returning
+  `{ fixture, controller, ... }` to simplify reuse.
+- Providers always include `provideZonelessChangeDetection()` and pairing
+  `provideHttpClient(withFetch())` with `provideHttpClientTesting()`.
+- Components that use router directives call `provideRouter([])`.
+- When HTTP dependencies are injected, tests prefer a spy (`<Service>Spy`) rather
+  than exercising `HttpTestingController` directly.
+- Tests follow the `// ARRANGE` / `// ACT` / `// ASSERT` structure and add a
+  `// CLEANUP` section for any flushes needed solely to satisfy `controller.verify()`.
+- Required `input()` values are set via `fixture.componentRef.setInput(...)` inside
+  the setup factory before returning.
 
 ### Test stack
 
