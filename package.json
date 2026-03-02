@@ -23,6 +23,7 @@
     "build:mfe-accounts": "ng build mfe-accounts",
     "build:shell": "ng build shell",
     "build:all": "npm run build:mfe-customers && npm run build:mfe-accounts && npm run build:shell",
+    "rebuild": "rm -rf package-lock.json dist/ node_modules/ && npm install && npm run build:all",
     "lint:shell": "ng lint shell --fix",
     "lint:mfe-customers": "ng lint mfe-customers --fix",
     "lint:mfe-accounts": "ng lint mfe-accounts --fix",
@@ -45,6 +46,9 @@
   },
   "private": true,
   "packageManager": "npm@11.8.0",
+  "engines": {
+    "node": "^20.0.0"
+  },
   "dependencies": {
     "@angular/animations": "^21.1.0",
     "@angular/common": "^21.1.0",
@@ -57,6 +61,7 @@
     "@angular/ssr": "^21.1.5",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
+    "@oxc-parser/binding-win32-x64-msvc": "^0.115.0",
     "@softarc/native-federation-node": "^3.5.2",
     "cors": "^2.8.5",
     "es-module-shims": "^1.5.12",
