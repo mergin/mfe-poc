@@ -1,0 +1,36 @@
+<div class="mfe-container">
+  <h1>{{ 'accounts.list.title' | translate }}</h1>
+
+  @if (accounts.isLoading()) {
+    <p class="state-msg">{{ 'accounts.list.loading' | translate }}</p>
+  } @else if (accounts.error()) {
+    <p class="state-msg error">{{ 'accounts.list.error' | translate }}</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'accounts.detail.fields.accountNumber' | translate }}</th>
+          <th>{{ 'accounts.detail.fields.type' | translate }}</th>
+          <th>{{ 'accounts.detail.fields.balance' | translate }}</th>
+          <th>Owner ID</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (account of accounts.value(); track account.id) {
+          <tr>
+            <td>{{ account.accountNumber }}</td>
+            <td>
+              <span [class]="'badge badge--' + account.type">{{
+                'accounts.detail.type.' + account.type | translate
+              }}</span>
+            </td>
+            <td class="balance">{{ account.balance | number: '1.2-2' }} {{ account.currency }}</td>
+            <td>{{ account.ownerId }}</td>
+            <td><a [routerLink]="[account.id]">View →</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

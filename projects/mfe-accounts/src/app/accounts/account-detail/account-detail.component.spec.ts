@@ -1,15 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
+import { of, throwError } from 'rxjs';
 
 import { AccountDetailComponent } from './account-detail.component';
-import { API_BASE_URL } from '../../core/api.config';
+import { AccountsService } from '../services/accounts';
+import { AccountsServiceSpy } from '../services/accounts';
 import { accountsDb } from '@mocks/db';
-
-const BASE = 'https://api-gateway.example.com/v1';
 
 async function setup(id: string) {
   TestBed.resetTestingModule();
@@ -17,85 +15,62 @@ async function setup(id: string) {
     imports: [AccountDetailComponent],
     providers: [
       provideZonelessChangeDetection(),
-      provideHttpClient(withFetch()),
-      provideHttpClientTesting(),
       provideRouter([]),
-      { provide: API_BASE_URL, useValue: BASE },
       // No loader — keys are returned as-is in tests (no HTTP request for translations).
       provideTranslateService(),
+      { provide: AccountsService, useClass: AccountsServiceSpy },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(AccountDetailComponent);
   fixture.componentRef.setInput('id', id);
-  const controller = TestBed.inject(HttpTestingController);
-  return { fixture, controller };
+  const accountsService = TestBed.inject(AccountsService) as unknown as AccountsServiceSpy;
+  return { fixture, accountsService };
 }
 
 describe('AccountDetailComponent', () => {
   const account = accountsDb[0]; // ES12-0049-0001 — checking — c-001
 
-  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => {
+    /* no HTTP to verify when using spy */
+  });
 
-  it('should create', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT — detectChanges() triggers resource() which fires the HTTP request
+  it('should create and load customer', async () => {
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
 
-    // ASSERT
     expect(fixture.componentInstance).toBeTruthy();
-
-    // CLEANUP — flush pending request so afterEach controller.verify() passes
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
   });
 
   it('should show loading state before data arrives', async () => {
-    // ARRANGE
-    const { fixture } = await setup(account.id);
-
-    // ACT — resource() fires immediately; loading state is visible before flush
+    const { fixture, accountsService } = await setup(account.id);
     fixture.detectChanges();
 
-    // ASSERT
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('.state-msg')?.textContent,
-    ).toContain('accounts.detail.loading');
-
-    // CLEANUP
-    TestBed.inject(HttpTestingController)
-      .expectOne(`${BASE}/accounts/${account.id}`)
-      .flush(account);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.state-msg')?.textContent).toContain('accounts.detail.loading');
+    expect(accountsService.get).toHaveBeenCalled();
   });
 
   it('should render account number in the heading', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
       account.accountNumber,
     );
   });
 
   it('should render all detail fields (id, type, currency, ownerId)', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain(account.id);
     expect(text).toContain(account.type);
@@ -104,89 +79,70 @@ describe('AccountDetailComponent', () => {
   });
 
   it('should format the balance with 2 decimal places', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT — balance = 4250.75 → "4,250.75"
     const balanceEl = (fixture.nativeElement as HTMLElement).querySelector('.balance');
     expect(balanceEl?.textContent).toContain('4,250.75');
     expect(balanceEl?.textContent).toContain('EUR');
   });
 
   it('should apply the correct badge class for the account type', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     const badge = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.badge');
     expect(badge?.classList.contains(`badge--${account.type}`)).toBe(true);
   });
 
   it('should render a back link', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup(account.id);
-
-    // ACT
+    const { fixture, accountsService } = await setup(account.id);
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.back-link')?.textContent,
     ).toContain('accounts.list.title');
   });
 
   it('should show error state when the API returns 404', async () => {
-    // ARRANGE
-    const { fixture, controller } = await setup('a-999');
+    const { fixture, accountsService } = await setup('a-999');
+    accountsService.get.mockReturnValueOnce(throwError(() => new Error('Not found')));
 
-    // ACT
     fixture.detectChanges();
-    controller
-      .expectOne(`${BASE}/accounts/a-999`)
-      .flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('.error')?.textContent).toContain(
       'accounts.detail.error',
     );
   });
 
   it('should reload data when the id input changes', async () => {
-    // ARRANGE
     const secondAccount = accountsDb[1]; // ES12-0049-0002 — savings
-    const { fixture, controller } = await setup(account.id);
+    const { fixture, accountsService } = await setup(account.id);
 
     // ACT — initial load
+    accountsService.get.mockReturnValueOnce(of(account));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${account.id}`).flush(account);
     await fixture.whenStable();
     fixture.detectChanges();
 
     // ACT — trigger input change
+    accountsService.get.mockReturnValueOnce(of(secondAccount));
     fixture.componentRef.setInput('id', secondAccount.id);
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/accounts/${secondAccount.id}`).flush(secondAccount);
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // ASSERT
     expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
       secondAccount.accountNumber,
     );

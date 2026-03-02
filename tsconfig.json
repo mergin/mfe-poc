@@ -16,7 +16,10 @@
     "module": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@mocks/*": ["mocks/*"]
+      "@mocks/*": ["mocks/*"],
+      "@shell/*": ["projects/shell/src/app/*"],
+      "@mfe-customers/*": ["projects/mfe-customers/src/app/*"],
+      "@mfe-accounts/*": ["projects/mfe-accounts/src/app/*"]
     }
   },
   "angularCompilerOptions": {

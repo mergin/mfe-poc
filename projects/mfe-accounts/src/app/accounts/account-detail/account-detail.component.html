@@ -1,0 +1,30 @@
+<div class="mfe-container">
+  <a
+    routerLink=".."
+    class="back-link"
+    >← {{ 'accounts.list.title' | translate }}</a
+  >
+
+  @if (account.isLoading()) {
+    <p class="state-msg">{{ 'accounts.detail.loading' | translate }}</p>
+  } @else if (account.error()) {
+    <p class="state-msg error">{{ 'accounts.detail.error' | translate }}</p>
+  } @else {
+    @let a = account.value()!;
+    <h1>{{ 'accounts.detail.fields.accountNumber' | translate }} {{ a.accountNumber }}</h1>
+    <dl class="detail-grid">
+      <dt>ID</dt>
+      <dd>{{ a.id }}</dd>
+      <dt>{{ 'accounts.detail.fields.type' | translate }}</dt>
+      <dd>
+        <span [class]="'badge badge--' + a.type">{{
+          'accounts.detail.type.' + a.type | translate
+        }}</span>
+      </dd>
+      <dt>{{ 'accounts.detail.fields.balance' | translate }}</dt>
+      <dd class="balance">{{ a.balance | number: '1.2-2' }} {{ a.currency }}</dd>
+      <dt>Owner ID</dt>
+      <dd>{{ a.ownerId }}</dd>
+    </dl>
+  }
+</div>

@@ -1,0 +1,28 @@
+<div class="mfe-container">
+  <a
+    routerLink=".."
+    class="back-link"
+    >← {{ 'customers.list.title' | translate }}</a
+  >
+
+  @if (customer.isLoading()) {
+    <p class="state-msg">{{ 'customers.detail.loading' | translate }}</p>
+  } @else if (customer.error()) {
+    <p class="state-msg error">{{ 'customers.detail.error' | translate }}</p>
+  } @else {
+    @let c = customer.value()!;
+    <h1>{{ c.name }}</h1>
+    <dl class="detail-grid">
+      <dt>ID</dt>
+      <dd>{{ c.id }}</dd>
+      <dt>{{ 'customers.detail.fields.email' | translate }}</dt>
+      <dd>{{ c.email }}</dd>
+      <dt>{{ 'customers.detail.fields.status' | translate }}</dt>
+      <dd>
+        <span [class]="'badge badge--' + c.status">{{
+          'customers.detail.status.' + c.status | translate
+        }}</span>
+      </dd>
+    </dl>
+  }
+</div>

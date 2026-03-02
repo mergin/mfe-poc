@@ -54,6 +54,35 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
 
+### Service + Spy generation conventions
+
+- Place generated services in a `services` folder next to the feature they belong to. Example:
+  - `projects/<project>/src/app/<feature>/services/<service-name>/<service-name>.service.ts`
+  - Tests and spies are co-located in the same folder:
+    - `<service-name>.service.spec.ts`
+    - `<service-name>.service.spy.ts`
+- Every folder that contains services (and their spies) **must** also include an `index.ts` file that re-exports the public symbols (service class, spy, and any types). A higher‑level `services/index.ts` can in turn aggregate subfolders. Consumers should import from the directory path (e.g. `import { CustomersService } from '../services/customers';`) instead of reaching into named files.
+- Domain types used by services (e.g. `Customer`, `Account`) should **not** live inside the service file. Instead, create a `models` folder (next to `services` or at the app root) containing interface/type definitions plus its own `index.ts` export barrel. Import types from the model index (e.g. `import type { Customer } from '../../models';`).
+
+### API token provisioning
+
+- The `API_BASE_URL` token must be provided by the shell at the root level for normal operation, because remote services can be instantiated before their own routes activate (see NG0201 errors). However, each micro‑frontend **should also** provide the same token in its own `app.config.ts` so it can run independently during development or e2e tests. Setting the value in both places keeps the behaviour predictable and avoids temporally‑early injection failures.
+- The spy must export a class named `<ServiceName>Spy` that implements `Partial<OriginalService>` and uses `vi.fn()` for each method so tests can assert calls and stub return values.
+- Tests should import the spy from the service folder and provide it via the TestBed providers (e.g. `{ provide: MyService, useClass: MyServiceSpy }`). Prefer spies in component/unit tests instead of exercising `HttpTestingController` directly when the intent is to isolate component logic.
+- When generating services, prefer exposing observable-returning methods (e.g. `getAll(): Observable<T[]>`) so callers can easily `of(...)`, `throwError(...)` or use other Rx helpers in tests.
+
+### Models & Interfaces
+
+- All domain models, enums, and shared interfaces go into a `models` directory. Keep models small and focused.
+- Each `models` directory requires an `index.ts` barrel exporting every type so other code can import with a single path.
+- Do **not** reference models via relative paths to service files; always use the `models` barrel.
+
+### Documentation
+
+- Every public method in services or components must be documented with a JSDoc comment explaining its purpose and parameters/return values when applicable.
+- Component and service classes should also have a brief JSDoc description at the top.
+- Spies should include comments above each mocked function indicating which original method they mimic.
+
 ## Code Style — Prettier
 
 All generated code must conform to `.prettierrc`. Key rules:
@@ -149,6 +178,15 @@ For every component, write tests covering:
 7. **Input reactivity** — for components with `input.required<string>()`, assert a reload occurs after `setInput()`
 
 ## Known Warnings
+
+### Mock service worker
+
+- In development we register the MSW worker so HTTP calls are intercepted. Bootstrap
+  code checks `location.hostname` and only starts the worker on allowed hosts
+  (e.g. `'localhost'`, `'127.0.0.1'`, `'[::1]'`). If you open the app with a
+  different hostname or via a remote device the worker may not start and you’ll
+  see real network requests. Adjust the condition to suit your environment or
+  use an environment flag instead.
 
 ### `unit-test` builder / Native Federation compatibility
 

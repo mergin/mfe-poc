@@ -11,7 +11,7 @@ export const customerHandlers = [
 
   http.get(`${BASE}/customers/:id`, async ({ params }) => {
     await delay(300);
-    const customer = customersDb.find((c) => c.id === params['id']);
+    const customer = customersDb.find(c => c.id === params['id']);
     if (!customer) {
       return HttpResponse.json({ message: 'Customer not found' }, { status: 404 });
     }

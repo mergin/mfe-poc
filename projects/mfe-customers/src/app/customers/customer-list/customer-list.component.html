@@ -1,0 +1,36 @@
+<div class="mfe-container">
+  <h1>{{ 'customers.list.title' | translate }}</h1>
+
+  @if (customers.isLoading()) {
+    <p class="state-msg">{{ 'customers.list.loading' | translate }}</p>
+  } @else if (customers.error()) {
+    <p class="state-msg error">{{ 'customers.list.error' | translate }}</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'customers.detail.fields.name' | translate }}</th>
+          <th>{{ 'customers.detail.fields.email' | translate }}</th>
+          <th>{{ 'customers.detail.fields.status' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (customer of customers.value(); track customer.id) {
+          <tr>
+            <td>{{ customer.name }}</td>
+            <td>{{ customer.email }}</td>
+            <td>
+              <span [class]="'badge badge--' + customer.status">
+                {{ 'customers.detail.status.' + customer.status | translate }}
+              </span>
+            </td>
+            <td>
+              <a [routerLink]="[customer.id]">View →</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

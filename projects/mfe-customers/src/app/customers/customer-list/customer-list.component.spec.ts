@@ -1,15 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
+import { of, throwError } from 'rxjs';
 
 import { CustomerListComponent } from './customer-list.component';
-import { API_BASE_URL } from '../../core/api.config';
 import { customersDb } from '@mocks/db';
-
-const BASE = 'https://api-gateway.example.com/v1';
+import { CustomersService } from '../services/customers';
+import { CustomersServiceSpy } from '../services/customers';
 
 async function setup() {
   TestBed.resetTestingModule();
@@ -17,59 +15,50 @@ async function setup() {
     imports: [CustomerListComponent],
     providers: [
       provideZonelessChangeDetection(),
-      provideHttpClient(withFetch()),
-      provideHttpClientTesting(),
       provideRouter([]),
-      { provide: API_BASE_URL, useValue: BASE },
-      // No loader — keys are returned as-is in tests (no HTTP request for translations).
       provideTranslateService(),
+      { provide: CustomersService, useClass: CustomersServiceSpy },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(CustomerListComponent);
-  const controller = TestBed.inject(HttpTestingController);
-  return { fixture, controller };
+  const customersService = TestBed.inject(CustomersService) as unknown as CustomersServiceSpy;
+  return { fixture, customersService };
 }
 
 describe('CustomerListComponent', () => {
-  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  // no HTTP controller to verify when using a spy
 
   it('should create', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT — detectChanges() triggers resource() which fires the HTTP request
     fixture.detectChanges();
 
-    // ASSERT
     expect(fixture.componentInstance).toBeTruthy();
-
-    // CLEANUP — flush pending request so afterEach controller.verify() passes
-    controller.expectOne(`${BASE}/customers`).flush([]);
+    expect(customersService.getAll).toHaveBeenCalled();
   });
 
   it('should show loading state before data arrives', async () => {
     // ARRANGE
-    const { fixture } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT — resource() fires immediately; loading state is visible before flush
     fixture.detectChanges();
 
-    // ASSERT
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.state-msg')?.textContent).toContain('customers.list.loading');
-
-    // CLEANUP
-    TestBed.inject(HttpTestingController).expectOne(`${BASE}/customers`).flush([]);
+    expect(customersService.getAll).toHaveBeenCalled();
   });
 
   it('should render all customers in a table after data loads', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT
+    customersService.getAll.mockReturnValueOnce(of(customersDb));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/customers`).flush(customersDb);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -80,11 +69,11 @@ describe('CustomerListComponent', () => {
 
   it('should display customer name and email in each row', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT
+    customersService.getAll.mockReturnValueOnce(of(customersDb));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/customers`).flush(customersDb);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -96,11 +85,11 @@ describe('CustomerListComponent', () => {
 
   it('should apply the correct badge class for active/inactive status', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT
+    customersService.getAll.mockReturnValueOnce(of(customersDb));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/customers`).flush(customersDb);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -114,11 +103,11 @@ describe('CustomerListComponent', () => {
 
   it('should render a "View →" link for each customer', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT
+    customersService.getAll.mockReturnValueOnce(of(customersDb));
     fixture.detectChanges();
-    controller.expectOne(`${BASE}/customers`).flush(customersDb);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -130,13 +119,11 @@ describe('CustomerListComponent', () => {
 
   it('should show error state when the API returns an error', async () => {
     // ARRANGE
-    const { fixture, controller } = await setup();
+    const { fixture, customersService } = await setup();
 
     // ACT
+    customersService.getAll.mockReturnValueOnce(throwError(() => new Error('Server error')));
     fixture.detectChanges();
-    controller
-      .expectOne(`${BASE}/customers`)
-      .flush({ message: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
     await fixture.whenStable();
     fixture.detectChanges();
 
