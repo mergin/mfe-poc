@@ -1,0 +1,123 @@
+openapi: 3.0.1
+info:
+  title: Mock API for mfe-poc
+  description: OpenAPI specification describing the mock backend used by the micro‑frontend proof‑of‑concept applications.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4200
+    description: Local development server (MSW intercepts requests)
+paths:
+  /customers:
+    get:
+      summary: Retrieve all customers
+      responses:
+        '200':
+          description: A list of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+  /customers/{id}:
+    get:
+      summary: Retrieve a single customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A customer object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+  /accounts:
+    get:
+      summary: Retrieve all accounts
+      responses:
+        '200':
+          description: A list of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+  /accounts/{id}:
+    get:
+      summary: Retrieve a single account by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An account object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          example: c-001
+        name:
+          type: string
+          example: Alice Martínez
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        status:
+          type: string
+          enum: [active, inactive]
+          example: active
+      required:
+        - id
+        - name
+        - email
+        - status
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          example: a-001
+        accountNumber:
+          type: string
+          example: ES12-0049-0001
+        type:
+          type: string
+          enum: [checking, savings, credit]
+          example: checking
+        balance:
+          type: number
+          example: 4250.75
+        currency:
+          type: string
+          example: EUR
+        ownerId:
+          type: string
+          description: ID of the customer that owns the account
+          example: c-001
+      required:
+        - id
+        - accountNumber
+        - type
+        - balance
+        - currency
+        - ownerId
