@@ -9,13 +9,13 @@
   align-items: center;
   gap: var(--spacing-xl);
   padding: 0 var(--spacing-lg);
-  height: 56px;
+  height: var(--shell-header-height);
   background: var(--color-shell-primary);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .shell-brand {
-  font-size: 1.1rem;
+  font-size: var(--font-size-brand);
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -28,9 +28,9 @@
   a {
     color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
-    padding: 0.4rem 0.9rem;
-    border-radius: 4px;
-    font-size: 0.95rem;
+    padding: var(--nav-link-padding);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-nav);
     font-weight: 500;
     transition:
       background 0.15s,
@@ -39,14 +39,14 @@
     &:hover,
     &:focus-visible {
       background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      color: var(--color-white);
       outline: 2px solid rgba(255, 255, 255, 0.6);
       outline-offset: 2px;
     }
 
     &.active {
       background: rgba(255, 255, 255, 0.2);
-      color: #fff;
+      color: var(--color-white);
     }
   }
 }

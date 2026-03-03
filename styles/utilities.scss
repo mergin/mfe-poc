@@ -53,6 +53,29 @@
 
   // Shell-specific colors
   --color-shell-primary: #003087;
+  --color-white: #fff;
+
+  // Border radius
+  --border-radius-sm: 4px;
+  --border-radius-pill: 999px;
+
+  // Font sizes
+  --font-size-sm: 0.8rem;
+  --font-size-xs: 0.75rem;
+  --font-size-base: 1rem;
+  --font-size-md: 0.9rem;
+  --font-size-nav: 0.95rem;
+  --font-size-brand: 1.1rem;
+  --font-size-lg: 1.5rem;
+
+  // Layout
+  --shell-header-height: 56px;
+  --detail-grid-label-width: 10rem;
+
+  // Component-specific padding & margin
+  --badge-padding: 0.2rem 0.6rem;
+  --table-cell-padding: 0.6rem var(--spacing-md);
+  --nav-link-padding: 0.4rem 0.9rem;
 }
 
 // ============================================================================

@@ -4,18 +4,18 @@
 .back-link {
   color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--font-size-md);
 }
 .back-link:hover {
   text-decoration: underline;
 }
 h1 {
   margin: var(--spacing-md) 0;
-  font-size: 1.5rem;
+  font-size: var(--font-size-lg);
 }
 .detail-grid {
   display: grid;
-  grid-template-columns: 10rem 1fr;
+  grid-template-columns: var(--detail-grid-label-width) 1fr;
   gap: var(--spacing-sm) var(--spacing-md);
 }
 dt {
@@ -23,9 +23,9 @@ dt {
   color: var(--color-gray-600);
 }
 .badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
+  padding: var(--badge-padding);
+  border-radius: var(--border-radius-pill);
+  font-size: var(--font-size-sm);
   font-weight: 500;
 }
 .badge--active {
