@@ -1,19 +1,23 @@
 /**
  * Global SCSS Variables
  * Shared across all micro-frontends
+ *
+ * This file contains SCSS variables and maps for Sass computations.
+ * CSS custom properties are defined in utilities.scss
  */
 
 // ============================================================================
-// Spacing Scale
+// SCSS Variables (For Mixin Implementations)
 // ============================================================================
-// Spacing sizes used for margins, paddings, and gaps
-// Based on 8px base unit (commonly used in modern design systems)
-$spacing-sm: 0.5rem; // 8px
-$spacing-md: 1rem; // 16px
-$spacing-lg: 1.5rem; // 24px
-$spacing-xl: 2rem; // 32px
+// Map values need to remain as SCSS variables for @each loops in mixins
 
-// Map for programmatic access
+// Spacing Scale
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+
+// Map for programmatic access in mixins
 $spacing-sizes: (
   'sm': $spacing-sm,
   'md': $spacing-md,
@@ -21,46 +25,16 @@ $spacing-sizes: (
   'xl': $spacing-xl,
 );
 
-// ============================================================================
 // Media Query Breakpoints
-// ============================================================================
-// Standard responsive breakpoints for mobile-first design
-// Named to reflect device type rather than screen size
 $breakpoint-mobile: 320px;
 $breakpoint-tablet: 768px;
 $breakpoint-desktop: 1024px;
 $breakpoint-wide: 1440px;
 
-// Map for programmatic access
+// Map for programmatic access in mixins
 $breakpoints: (
   'mobile': $breakpoint-mobile,
   'tablet': $breakpoint-tablet,
   'desktop': $breakpoint-desktop,
   'wide': $breakpoint-wide,
 );
-
-// ============================================================================
-// Typography
-// ============================================================================
-$font-family-base:
-  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-$font-size-base: 1rem;
-$line-height-base: 1.5;
-
-// ============================================================================
-// Colors
-// ============================================================================
-$color-primary: #0066cc;
-$color-success: #10b981;
-$color-warning: #f59e0b;
-$color-error: #ef4444;
-$color-gray-50: #f9fafb;
-$color-gray-100: #f3f4f6;
-$color-gray-200: #e5e7eb;
-$color-gray-300: #d1d5db;
-$color-gray-400: #9ca3af;
-$color-gray-500: #6b7280;
-$color-gray-600: #4b5563;
-$color-gray-700: #374151;
-$color-gray-800: #1f2937;
-$color-gray-900: #111827;

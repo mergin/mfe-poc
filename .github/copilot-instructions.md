@@ -146,6 +146,21 @@ All generated code must pass `npm run lint` without errors. Key enforced rules:
 
 All shared SCSS utilities and variables are defined in the `styles/` directory at the workspace root and automatically imported in each project's `styles.scss`.
 
+### Sass Import Syntax
+
+Use modern `@use` syntax instead of deprecated `@import`:
+
+```scss
+// ✅ Correct: Modern @use syntax
+@use '../../../styles/utilities' as utilities;
+@use './mixins' as mixins;
+
+// ❌ Avoid: Deprecated @import syntax
+@import '../../../styles/utilities';
+```
+
+When using `@use`, access namespace members with the dot notation (e.g., `utilities.$breakpoints`, `mixins.flex-center`).
+
 ### Spacing Utilities
 
 Generated utility classes for margins and padding with a consistent 8px spacing scale:
@@ -220,27 +235,44 @@ Example:
 
 ### Global Variables
 
-Spacing, breakpoints, colors, and typography are defined in `styles/_variables.scss` and can be used directly in component styles:
+Spacing, breakpoints, colors, and typography are defined in `styles/_variables.scss` as both CSS custom properties (preferred) and SCSS variables:
+
+**Use CSS custom properties (CSS variables) by default:**
 
 ```scss
-// Use spacing variables in your component styles
+// ✅ Preferred: Use CSS variables in component styles
 .section {
-  margin: $spacing-lg;
-  padding: $spacing-md;
+  margin: var(--spacing-lg);
+  padding: var(--spacing-md);
 
   @include media(tablet) {
-    padding: $spacing-lg;
+    padding: var(--spacing-lg);
   }
 }
 
-// Use color variables
 .button {
-  background-color: $color-primary;
+  background-color: var(--color-primary);
   color: white;
 
   &:hover {
-    background-color: darken($color-primary, 10%);
+    background-color: var(--color-error);
   }
+}
+```
+
+**Use SCSS variables only in mixin implementations that require compile-time computation:**
+
+```scss
+// ✅ Acceptable: SCSS variables in mixin logic (already provided)
+@each $size-name, $size-value in $spacing-sizes {
+  .margin-#{$size-name} {
+    margin: $size-value;
+  }
+}
+
+// ❌ Avoid: SCSS variables in component styles
+.section {
+  margin: $spacing-lg; // Don't do this; use var(--spacing-lg)
 }
 ```
 

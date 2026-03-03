@@ -328,12 +328,32 @@ The hook is installed automatically via the `prepare` script when running `npm i
 
 Shared SCSS utilities reside in the top‑level `styles/` directory, which is automatically imported in every project's `src/styles.scss`.
 
+### Sass Import Syntax
+
+Use modern `@use` syntax instead of deprecated `@import`:
+
+```scss
+// ✅ Correct: Modern @use syntax
+@use '../../../styles/utilities' as utilities;
+@use './mixins' as mixins;
+
+// ❌ Avoid: Deprecated @import syntax
+@import '../../../styles/utilities';
+```
+
+When using `@use`, access namespace members with the dot notation (e.g., `utilities.$breakpoints`, `mixins.flex-center`).
+
 The library includes:
 
-- **Variables:**
-  - Spacing scale (`$spacing-sm`, `$spacing-md`, `$spacing-lg`, `$spacing-xl`)
-  - Breakpoints (`$breakpoint-mobile`, `$breakpoint-tablet`, `$breakpoint-desktop`, `$breakpoint-wide`)
-  - Colors, typography, and other design tokens
+- **CSS Custom Properties (Preferred):**
+  - Spacing scale: `--spacing-sm`, `--spacing-md`, `--spacing-lg`, `--spacing-xl`
+  - Breakpoints: `--breakpoint-mobile`, `--breakpoint-tablet`, `--breakpoint-desktop`, `--breakpoint-wide`
+  - Colors: `--color-primary`, `--color-success`, `--color-error`, `--color-gray-*`, etc.
+  - Typography: `--font-family-base`, `--font-size-base`, `--line-height-base`
+- **SCSS Variables:**
+  - Available for use in mixins and Sass-specific computations
+  - Map to the same values as CSS custom properties
+  - Internally used by responsive and helper mixins
 - **Utility classes:** auto‑generated margin/padding/gap helpers such as
   `.margin-top-md`, `.padding-lg`, `.gap-sm`, and the shorthand `.margin-md`/`.padding-lg`
 - **Responsive mixins:**
@@ -343,16 +363,57 @@ The library includes:
   - `@include flex-center`, `@include flex-column`, `@include truncate`, `@include line-clamp(<n>)`,
     `@include smooth-transition`
 
-Example use in a component stylesheet:
+### CSS Variables vs SCSS Variables
+
+**Use CSS custom properties (CSS variables) by default** — they are available at runtime, can be overridden dynamically, and work directly in templates.
+
+```scss
+// ✅ Preferred in component styles
+.card {
+  padding: var(--spacing-md);
+  background-color: var(--color-primary);
+
+  @include on-tablet {
+    padding: var(--spacing-lg);
+  }
+}
+
+// ✅ Directly in templates
+<div style="margin-top: var(--spacing-lg); color: var(--color-primary);">
+  Content
+</div>
+```
+
+Use SCSS variables **only** when you need compile-time computation (e.g., in mixin implementations that loop over breakpoints or spacing sizes):
+
+```scss
+// ✅ SCSS variables in mixin implementation (already done)
+@each $size-name, $size-value in $spacing-sizes {
+  .margin-#{$size-name} {
+    margin: $size-value;
+  }
+}
+
+// ❌ Avoid in component styles when CSS variables would work
+.card {
+  padding: $spacing-md; // Don't do this; use var(--spacing-md) instead
+}
+```
+
+Example use in component stylesheets:
 
 ```scss
 .card {
-  @include flex-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: $spacing-md;
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-50);
 
   @include on-tablet {
     width: 48%;
+    padding: var(--spacing-lg);
   }
 
   @include on-desktop {
@@ -362,11 +423,12 @@ Example use in a component stylesheet:
 
 .title {
   @include line-clamp(3);
-  margin-top: $spacing-lg;
+  margin-top: var(--spacing-lg);
+  color: var(--color-primary);
 }
 ```
 
-Templates can also leverage the utility classes directly:
+Templates can leverage utility classes directly:
 
 ```html
 <div class="margin-top-md padding-bottom-lg">Content</div>

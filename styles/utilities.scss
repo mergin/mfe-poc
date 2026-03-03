@@ -3,15 +3,65 @@
  * Shared across all micro-frontends
  */
 
-@import './variables';
+@use './variables' as vars;
+
+// ============================================================================
+// CSS Custom Properties (Preferred)
+// ============================================================================
+// These are defined in :root and can be used directly in component styles
+:root {
+  // Spacing Scale (8px base unit)
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  // Media Query Breakpoints
+  --breakpoint-mobile: 320px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-wide: 1440px;
+
+  // Typography
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5;
+
+  // Colors
+  --color-primary: #0066cc;
+  --color-primary-light: #e3f0ff;
+  --color-success: #10b981;
+  --color-success-light: #d4f8e8;
+  --color-success-dark: #1a7a4a;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fff3cd;
+  --color-warning-dark: #7a5a00;
+  --color-error: #ef4444;
+  --color-error-light: #fde8e8;
+  --color-error-dark: #a02020;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  // Shell-specific colors
+  --color-shell-primary: #003087;
+}
 
 // ============================================================================
 // Media Query Mixins
 // ============================================================================
 // Usage: @include media(tablet) { ... }
 @mixin media($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    $width: map-get($breakpoints, $breakpoint);
+  @if map-has-key(vars.$breakpoints, $breakpoint) {
+    $width: map-get(vars.$breakpoints, $breakpoint);
     @media (min-width: $width) {
       @content;
     }
@@ -23,8 +73,8 @@
 // Mobile-first: target only up to a specific breakpoint
 // Usage: @include media-max(tablet) { ... }
 @mixin media-max($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    $width: map-get($breakpoints, $breakpoint);
+  @if map-has-key(vars.$breakpoints, $breakpoint) {
+    $width: map-get(vars.$breakpoints, $breakpoint);
     @media (max-width: $width - 1px) {
       @content;
     }
@@ -36,7 +86,7 @@
 // Shorthand for common responsive patterns
 // Usage: @include on-tablet { ... }
 @mixin on-mobile {
-  @media (max-width: map-get($breakpoints, 'tablet') - 1px) {
+  @media (max-width: map-get(vars.$breakpoints, 'tablet') - 1px) {
     @content;
   }
 }
@@ -69,7 +119,7 @@
 // Sizes: sm (8px), md (16px), lg (24px), xl (32px)
 
 @each $side in 'top', 'bottom', 'left', 'right' {
-  @each $size-name, $size-value in $spacing-sizes {
+  @each $size-name, $size-value in vars.$spacing-sizes {
     // Margin utilities
     .margin-#{$side}-#{$size-name} {
       margin-#{$side}: $size-value;
@@ -83,7 +133,7 @@
 }
 
 // Shorthand helpers for all sides
-@each $size-name, $size-value in $spacing-sizes {
+@each $size-name, $size-value in vars.$spacing-sizes {
   .margin-#{$size-name} {
     margin: $size-value;
   }

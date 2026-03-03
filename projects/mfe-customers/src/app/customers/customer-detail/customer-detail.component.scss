@@ -1,8 +1,8 @@
 .mfe-container {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
 }
 .back-link {
-  color: #0057b8;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 0.9rem;
 }
@@ -10,17 +10,17 @@
   text-decoration: underline;
 }
 h1 {
-  margin: 1rem 0;
+  margin: var(--spacing-md) 0;
   font-size: 1.5rem;
 }
 .detail-grid {
   display: grid;
   grid-template-columns: 10rem 1fr;
-  gap: 0.5rem 1rem;
+  gap: var(--spacing-sm) var(--spacing-md);
 }
 dt {
   font-weight: 600;
-  color: #555;
+  color: var(--color-gray-600);
 }
 .badge {
   padding: 0.2rem 0.6rem;
@@ -29,16 +29,16 @@ dt {
   font-weight: 500;
 }
 .badge--active {
-  background: #d4f8e8;
-  color: #1a7a4a;
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
 }
 .badge--inactive {
-  background: #fde8e8;
-  color: #a02020;
+  background: var(--color-error-light);
+  color: var(--color-error-dark);
 }
 .state-msg {
-  color: #666;
+  color: var(--color-gray-500);
 }
 .error {
-  color: #c00;
+  color: var(--color-error);
 }

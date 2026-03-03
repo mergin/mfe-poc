@@ -7,10 +7,10 @@
 .shell-header {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding: 0 1.5rem;
+  gap: var(--spacing-xl);
+  padding: 0 var(--spacing-lg);
   height: 56px;
-  background: #003087;
+  background: var(--color-shell-primary);
   color: #fff;
 }
 
@@ -23,7 +23,7 @@
 
 .shell-nav {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 
   a {
     color: rgba(255, 255, 255, 0.8);
