@@ -64,102 +64,128 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 
 ```
 mfe-poc/
-├── angular.json                      # Monorepo config (3 projects)
-├── eslint.config.mjs                 # ESLint flat config (TS + Angular templates + Prettier)
-├── commitlint.config.js              # Conventional-commit rules (extends @commitlint/config-angular)
-├── vitest.config.ts                  # Vitest workspace config
-├── tsconfig.json                     # Root TypeScript config
+├── angular.json                       # Monorepo config (3 projects)
+├── eslint.config.mjs                  # ESLint flat config (TS + Angular templates + Prettier)
+├── commitlint.config.js               # Conventional-commit rules (extends @commitlint/config-angular)
+├── vitest.config.ts                   # Vitest workspace config
+├── tsconfig.json                      # Root TypeScript config
 ├── package.json
-├── .editorconfig                     # Editor defaults (indent, charset, newline) for all contributors
+├── .editorconfig                      # Editor defaults (indent, charset, newline) for all contributors
 ├── .gitignore
-├── .prettierrc                       # Prettier config
+├── .prettierrc                        # Prettier config
 ├── .husky/
-│   ├── pre-commit                    # Runs lint-staged on every commit
-│   └── commit-msg                    # Runs commitlint on the commit message
+│   ├── pre-commit                     # Runs lint-staged on every commit
+│   └── commit-msg                     # Runs commitlint on the commit message
 ├── scripts/
-│   └── test-all-log.sh              # Runs all tests with coverage; writes test-result.log
+│   └── test-all-log.sh                # Runs all tests with coverage; writes test-result.log
 ├── public/
-│   └── mockServiceWorker.js         # Workspace-level MSW worker copy (source for npx msw init)
+│   └── mockServiceWorker.js           # Workspace-level MSW worker copy (source for npx msw init)
 │
-├── mocks/                            # Workspace-level shared mock data & MSW handlers
-│   ├── db.ts                         # In-memory fixture data (customersDb, accountsDb)
-│   ├── server.ts                     # MSW Node server (future integration/e2e use only)
+├── mocks/                             # Workspace-level shared mock data & MSW handlers
+│   ├── db.ts                          # In-memory fixture data (customersDb, accountsDb)
+│   ├── server.ts                      # MSW Node server (future integration/e2e use only)
 │   └── handlers/
-│       ├── customers.ts              # GET /customers, GET /customers/:id
-│       └── accounts.ts               # GET /accounts, GET /accounts/:id
+│       ├── customers.ts               # GET /customers, GET /customers/:id
+│       ├── accounts.ts                # GET /accounts, GET /accounts/:id
+│       └── index.ts
+│
+├── styles/
+│   ├── _variables.scss                # Shared tokens (spacing, colors, breakpoints, typography)
+│   └── utilities.scss                 # Shared utility classes and responsive/helper mixins
 │
 └── projects/
-    ├── shell/                        # Host application (port 4200)
-    │   ├── federation.config.js      # Native Federation host config
+    ├── shell/                         # Host application (port 4200)
+    │   ├── federation.config.js       # Native Federation host config
+    │   ├── public/
+    │   │   ├── favicon.ico
+    │   │   ├── federation.manifest.json  # Remote entry URLs for mfe-customers & mfe-accounts
+    │   │   ├── mockServiceWorker.js   # MSW Service Worker
+    │   │   └── i18n/
+    │   │       └── en.json            # English translations (served at /i18n/en.json)
     │   └── src/
-    │       ├── main.ts               # initFederation → bootstrap
-    │       ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
-    │       ├── bootstrap-server.ts   # SSR bootstrap
+    │       ├── main.ts                # initFederation → bootstrap
+    │       ├── bootstrap.ts           # bootstrapApplication (starts MSW on localhost)
+    │       ├── bootstrap-server.ts    # SSR bootstrap
     │       ├── mocks/
-    │       │   └── browser.ts        # setupWorker(customerHandlers, accountHandlers)
+    │       │   └── browser.ts         # setupWorker(customerHandlers, accountHandlers)
     │       └── app/
-    │           ├── app.ts            # Root component (nav + router-outlet)
-    │           ├── app.html          # Shell layout template
-    │           ├── app.routes.ts     # loadRemoteModule → CUSTOMERS_ROUTES / ACCOUNTS_ROUTES
+    │           ├── app.ts             # Root component (nav + router-outlet)
+    │           ├── app.html           # Shell layout template
+    │           ├── app.routes.ts      # loadRemoteModule → CUSTOMERS_ROUTES / ACCOUNTS_ROUTES
     │           ├── app.routes.server.ts
-    │           ├── app.config.ts     # provideRouter, provideHttpClient, provideTranslateService
+    │           ├── app.config.ts      # provideRouter, provideHttpClient, provideTranslateService
     │           ├── app.config.server.ts
-    │           ├── app.spec.ts       # Shell root component tests
+    │           ├── app.spec.ts        # Shell root component tests
     │           └── core/
-    │               ├── api.config.ts           # InjectionToken<string> API_BASE_URL
-    │               ├── auth.interceptor.ts     # HttpInterceptorFn — Bearer token from sessionStorage
+    │               ├── api.config.ts        # InjectionToken<string> API_BASE_URL
+    │               ├── auth.interceptor.ts  # HttpInterceptorFn — Bearer token from sessionStorage
     │               └── auth.interceptor.spec.ts
-    │   └── public/
-    │       ├── federation.manifest.json         # Remote entry URLs for mfe-customers & mfe-accounts
-    │       ├── mockServiceWorker.js             # MSW Service Worker
-    │       └── i18n/
-    │           └── en.json                      # English translations (served at /i18n/en.json)
     │
-    ├── mfe-customers/                # Customers remote (port 4201)
-    │   ├── federation.config.js      # exposes: { './Routes': customers.routes.ts }
+    ├── mfe-customers/                 # Customers remote (port 4201)
+    │   ├── federation.config.js       # exposes: { './Routes': customers.routes.ts }
     │   └── src/
     │       ├── main.ts
-    │       ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
+    │       ├── bootstrap.ts           # bootstrapApplication (starts MSW on localhost)
     │       ├── bootstrap-server.ts
     │       ├── mocks/
-    │       │   └── browser.ts        # setupWorker(customerHandlers)
+    │       │   └── browser.ts         # setupWorker(customerHandlers)
     │       └── app/
     │           ├── app.ts
     │           ├── app.html
-    │           ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-customers)
+    │           ├── app.routes.ts      # Standalone wrapper (for ng serve mfe-customers)
     │           ├── app.routes.server.ts
-    │           ├── app.config.ts     # provideRouter, provideHttpClient, provideChildTranslateService
+    │           ├── app.config.ts      # provideRouter, provideHttpClient, provideChildTranslateService
     │           ├── app.config.server.ts
     │           ├── app.spec.ts
-    │           ├── customers.routes.ts   # CUSTOMERS_ROUTES (exposed to shell)
-    │           └── core/
-    │               └── api.config.ts
+    │           ├── customers.routes.ts  # CUSTOMERS_ROUTES (exposed to shell)
+    │           ├── core/
+    │           │   └── api.config.ts
+    │           ├── models/
+    │           │   ├── customer.ts
+    │           │   └── index.ts
     │           └── customers/
-    │               ├── customer-list/    # List component — resource() + HttpClient
-    │               └── customer-detail/ # Detail component — input(:id) → resource()
+    │               ├── customer-list/   # List component — resource() + CustomersService
+    │               ├── customer-detail/ # Detail component — input(:id) → resource()
+    │               └── services/
+    │                   ├── index.ts
+    │                   └── customers/
+    │                       ├── customers.service.ts
+    │                       ├── customers.service.spec.ts
+    │                       ├── customers.service.spy.ts
+    │                       └── index.ts
     │
-    └── mfe-accounts/                 # Accounts remote (port 4202)
-        ├── federation.config.js      # exposes: { './Routes': accounts.routes.ts }
+    └── mfe-accounts/                  # Accounts remote (port 4202)
+        ├── federation.config.js       # exposes: { './Routes': accounts.routes.ts }
         └── src/
             ├── main.ts
-            ├── bootstrap.ts          # bootstrapApplication (starts MSW on localhost)
+            ├── bootstrap.ts           # bootstrapApplication (starts MSW on localhost)
             ├── bootstrap-server.ts
             ├── mocks/
-            │   └── browser.ts        # setupWorker(accountHandlers)
+            │   └── browser.ts         # setupWorker(accountHandlers)
             └── app/
                 ├── app.ts
                 ├── app.html
-                ├── app.routes.ts     # Standalone wrapper (for ng serve mfe-accounts)
+                ├── app.routes.ts      # Standalone wrapper (for ng serve mfe-accounts)
                 ├── app.routes.server.ts
-                ├── app.config.ts     # provideRouter, provideHttpClient, provideChildTranslateService
+                ├── app.config.ts      # provideRouter, provideHttpClient, provideChildTranslateService
                 ├── app.config.server.ts
                 ├── app.spec.ts
-                ├── accounts.routes.ts    # ACCOUNTS_ROUTES (exposed to shell)
-                └── core/
-                    └── api.config.ts
+                ├── accounts.routes.ts  # ACCOUNTS_ROUTES (exposed to shell)
+                ├── core/
+                │   └── api.config.ts
+                ├── models/
+                │   ├── account.ts
+                │   └── index.ts
                 └── accounts/
-                    ├── account-list/    # List component — resource() + HttpClient
-                    └── account-detail/ # Detail component — input(:id) → resource()
+                    ├── account-list/   # List component — resource() + AccountsService
+                    ├── account-detail/ # Detail component — input(:id) → resource()
+                    └── services/
+                        ├── index.ts
+                        └── accounts/
+                            ├── accounts.service.ts
+                            ├── accounts.service.spec.ts
+                            ├── accounts.service.spy.ts
+                            └── index.ts
 ```
 
 ### How federation works
@@ -552,30 +578,12 @@ npm run test:all:log
 
 ### What is tested
 
-Prior to the test stack description, the README currently has the tests table; we want to inject testing conventions above the stack.
-
-| Project         | Spec files | Tests  | What's covered                                                                                                                        |
-| --------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `shell`         | 2          | 8      | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough)                                                  |
-| `mfe-customers` | 3          | 17     | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change) |
-| `mfe-accounts`  | 3          | 19     | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change)  |
-| **Total**       | **8**      | **44** |                                                                                                                                       |
-
-### Testing conventions
-
-Common patterns across all projects:
-
-- Each `describe` block defines an `async function setup(...)` factory returning
-  `{ fixture, controller, ... }` to simplify reuse.
-- Providers always include `provideZonelessChangeDetection()` and pairing
-  `provideHttpClient(withFetch())` with `provideHttpClientTesting()`.
-- Components that use router directives call `provideRouter([])`.
-- When HTTP dependencies are injected, tests prefer a spy (`<Service>Spy`) rather
-  than exercising `HttpTestingController` directly.
-- Tests follow the `// ARRANGE` / `// ACT` / `// ASSERT` structure and add a
-  `// CLEANUP` section for any flushes needed solely to satisfy `controller.verify()`.
-- Required `input()` values are set via `fixture.componentRef.setInput(...)` inside
-  the setup factory before returning.
+| Project         | Spec files | Tests  | What's covered                                                                                                                                            |
+| --------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shell`         | 2          | 8      | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough)                                                                      |
+| `mfe-customers` | 4          | 22     | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change), `CustomersService` |
+| `mfe-accounts`  | 4          | 24     | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change), `AccountsService`   |
+| **Total**       | **10**     | **54** |                                                                                                                                                           |
 
 ### Test stack
 
@@ -609,11 +617,11 @@ Running `npm run test:all:log` executes `scripts/test-all-log.sh`, which:
      Stmts: 100%  Branch: 100%  Funcs: 100%  Lines: 100%
 
   ▶  Testing  mfe-customers ...
-  ✔  mfe-customers → 17 tests in 3 file(s) · 8.18s
+  ✔  mfe-customers → 22 tests in 4 file(s) · 7.10s
      Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
 
   ▶  Testing  mfe-accounts ...
-  ✔  mfe-accounts → 19 tests in 3 file(s) · 7.10s
+  ✔  mfe-accounts → 24 tests in 4 file(s) · 7.20s
      Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
 
   ────────────────────────────────────────────────────────
@@ -622,11 +630,11 @@ Running `npm run test:all:log` executes `scripts/test-all-log.sh`, which:
   Project            |  Stmts | Branch |  Funcs |  Lines
   ───────────────────────────────────────────────────────
   shell              |    100 |    100 |    100 |    100 | 8 tests · 5.70s
-  mfe-customers      |    100 |   92.5 |    100 |    100 | 17 tests · 8.18s
-  mfe-accounts       |    100 |   92.5 |    100 |    100 | 19 tests · 7.10s
+  mfe-customers      |    100 |   92.5 |    100 |    100 | 22 tests · 7.10s
+  mfe-accounts       |    100 |   92.5 |    100 |    100 | 24 tests · 7.20s
 
   ────────────────────────────────────────────────────────
-  ✔  ALL TESTS PASSED  ·  44 tests across 8 spec file(s)
+  ✔  ALL TESTS PASSED  ·  54 tests across 10 spec file(s)
   Log: .../test-result.log
   ────────────────────────────────────────────────────────
 ```
@@ -662,7 +670,7 @@ The log file is overwritten on every run and contains three sections per project
   SUMMARY
 ════════════════════════════════════════════════════════════
   Result    : ALL PASSED ✔
-  Total     : 44 tests  |  8 spec files
+  Total     : 54 tests  |  10 spec files
   Completed : 2026-02-26 09:00:35
 ════════════════════════════════════════════════════════════
 ```

@@ -11,7 +11,9 @@
     <p class="state-msg error">{{ 'accounts.detail.error' | translate }}</p>
   } @else {
     @let a = account.value()!;
-    <h1>{{ 'accounts.detail.fields.accountNumber' | translate }} {{ a.accountNumber }}</h1>
+    <h1 class="margin-top-md margin-bottom-md">
+      {{ 'accounts.detail.fields.accountNumber' | translate }} {{ a.accountNumber }}
+    </h1>
     <dl class="detail-grid">
       <dt>ID</dt>
       <dd>{{ a.id }}</dd>

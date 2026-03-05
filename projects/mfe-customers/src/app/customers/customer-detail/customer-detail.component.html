@@ -11,7 +11,7 @@
     <p class="state-msg error">{{ 'customers.detail.error' | translate }}</p>
   } @else {
     @let c = customer.value()!;
-    <h1>{{ c.name }}</h1>
+    <h1 class="margin-top-md margin-bottom-md">{{ c.name }}</h1>
     <dl class="detail-grid">
       <dt>ID</dt>
       <dd>{{ c.id }}</dd>
