@@ -14,6 +14,7 @@ An Angular **micro-frontend proof-of-concept** built with [Native Federation](ht
 - [Styling](#styling)
 - [Commit conventions](#commit-conventions)
 - [Running tests](#running-tests)
+- [CI overview](#ci-overview)
 - [API mocking with MSW](#api-mocking-with-msw)
 - [Internationalisation (i18n)](#internationalisation-i18n)
 - [Adapting for production](#adapting-for-production)
@@ -68,16 +69,27 @@ mfe-poc/
 ├── eslint.config.mjs                  # ESLint flat config (TS + Angular templates + Prettier)
 ├── commitlint.config.js               # Conventional-commit rules (extends @commitlint/config-angular)
 ├── vitest.config.ts                   # Vitest workspace config
+├── playwright.config.ts               # Playwright E2E config (baseURL, webServer, reporters)
 ├── tsconfig.json                      # Root TypeScript config
 ├── package.json
+├── e2e/                               # End-to-end test suites (Playwright)
+│   ├── shell/
+│   │   └── navigation.spec.ts
+│   ├── customers/
+│   │   └── list-detail.spec.ts
+│   └── accounts/
+│       └── list-detail.spec.ts
 ├── .editorconfig                      # Editor defaults (indent, charset, newline) for all contributors
 ├── .gitignore
 ├── .prettierrc                        # Prettier config
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # Lint + unit + e2e in CI; uploads Playwright artifacts
 ├── .husky/
 │   ├── pre-commit                     # Runs lint-staged on every commit
 │   └── commit-msg                     # Runs commitlint on the commit message
 ├── scripts/
-│   └── test-all-log.sh                # Runs all tests with coverage; writes test-result.log
+│   └── test-all-log.sh                # Runs unit + render + e2e and writes test-result.log
 ├── public/
 │   └── mockServiceWorker.js           # Workspace-level MSW worker copy (source for npx msw init)
 │
@@ -115,7 +127,7 @@ mfe-poc/
     │           ├── app.routes.server.ts
     │           ├── app.config.ts      # provideRouter, provideHttpClient, provideTranslateService
     │           ├── app.config.server.ts
-    │           ├── app.spec.ts        # Shell root component tests
+    │           ├── app.render.spec.ts # Shell root render tests
     │           └── core/
     │               ├── api.config.ts        # InjectionToken<string> API_BASE_URL
     │               ├── auth.interceptor.ts  # HttpInterceptorFn — Bearer token from sessionStorage
@@ -136,7 +148,7 @@ mfe-poc/
     │           ├── app.routes.server.ts
     │           ├── app.config.ts      # provideRouter, provideHttpClient, provideChildTranslateService
     │           ├── app.config.server.ts
-    │           ├── app.spec.ts
+    │           ├── app.render.spec.ts
     │           ├── customers.routes.ts  # CUSTOMERS_ROUTES (exposed to shell)
     │           ├── core/
     │           │   └── api.config.ts
@@ -169,7 +181,7 @@ mfe-poc/
                 ├── app.routes.server.ts
                 ├── app.config.ts      # provideRouter, provideHttpClient, provideChildTranslateService
                 ├── app.config.server.ts
-                ├── app.spec.ts
+                ├── app.render.spec.ts
                 ├── accounts.routes.ts  # ACCOUNTS_ROUTES (exposed to shell)
                 ├── core/
                 │   └── api.config.ts
@@ -538,7 +550,16 @@ chore(deps): bump typescript     # `chore` is not a valid type — use `build`
 
 ## Running tests
 
-The test suite uses [Vitest](https://vitest.dev/) via `@angular/build:unit-test` with `HttpTestingController` for HTTP interception. **No running servers are required.**
+This repository has three automated test layers:
+
+- **Unit tests** (`*.spec.ts`) with [Vitest](https://vitest.dev/) via `@angular/build:unit-test`.
+- **Render tests** (`*.render.spec.ts`) with Vitest + TestBed.
+- **End-to-end tests** with [Playwright](https://playwright.dev/) from the top-level `e2e/` folder.
+
+Unit tests run without servers; Playwright tests start all three apps automatically using `start:all`.
+For pipeline behavior and CI artifacts, see [CI overview](#ci-overview).
+
+Render tests follow the `*.render.spec.ts` naming convention and live next to the component they verify.
 
 ### Testing conventions
 
@@ -558,13 +579,18 @@ Common patterns across all projects:
 
 ### Commands
 
-| Command                  | What it does                                                     |
-| ------------------------ | ---------------------------------------------------------------- |
-| `npm run test:shell`     | Runs shell tests only (watch-free)                               |
-| `npm run test:customers` | Runs mfe-customers tests only                                    |
-| `npm run test:accounts`  | Runs mfe-accounts tests only                                     |
-| `npm run test:all`       | Runs all three suites sequentially                               |
-| `npm run test:all:log`   | Runs all three suites with coverage and writes `test-result.log` |
+| Command                    | What it does                                                             |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `npm run test:shell`       | Runs shell unit tests only (watch-free)                                  |
+| `npm run test:customers`   | Runs mfe-customers unit tests only                                       |
+| `npm run test:accounts`    | Runs mfe-accounts unit tests only                                        |
+| `npm run test:all`         | Runs all three unit suites sequentially                                  |
+| `npm run test:render`      | Runs only `*.render.spec.ts` files across shell, customers, and accounts |
+| `npm run test:all:log`     | Runs unit + render + e2e and writes a consolidated `test-result.log`     |
+| `npm run test:e2e`         | Runs Playwright end-to-end tests from `e2e/`                             |
+| `npm run test:e2e:headed`  | Runs Playwright in headed mode for local debugging                       |
+| `npm run test:e2e:install` | Installs Chromium for Playwright                                         |
+| `npm run test:ci`          | Runs `test:all` (unit) and `test:e2e` (end-to-end)                       |
 
 ### Quick run
 
@@ -572,18 +598,39 @@ Common patterns across all projects:
 # Run all tests once (no watch mode)
 npm run test:all
 
-# Run all tests + coverage, save results to test-result.log
+# Run end-to-end tests
+npm run test:e2e
+
+# Run render-only tests (*.render.spec.ts)
+npm run test:render
+
+# Run full CI-equivalent suite (unit + e2e)
+npm run test:ci
+
+# Run unit + render + e2e with consolidated log output
 npm run test:all:log
 ```
 
+### End-to-end tests (Playwright)
+
+All E2E specs live under the top-level `e2e/` folder and are grouped by domain:
+
+- `e2e/shell/navigation.spec.ts` — shell navigation between remotes
+- `e2e/customers/list-detail.spec.ts` — customers list, detail, and back navigation
+- `e2e/accounts/list-detail.spec.ts` — accounts list, detail, and back navigation
+
+Playwright uses `playwright.config.ts` with:
+
+- `baseURL: http://127.0.0.1:4200`
+- `webServer.command: npm run start:all`
+- reporters: HTML + JUnit (`test-results/e2e-junit.xml`)
+
 ### What is tested
 
-| Project         | Spec files | Tests  | What's covered                                                                                                                                            |
-| --------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shell`         | 2          | 8      | App component (nav, router-outlet), `authInterceptor` (token injection, passthrough)                                                                      |
-| `mfe-customers` | 4          | 22     | App root, `CustomerListComponent` (loading, rows, badges, links, error), `CustomerDetailComponent` (fields, badge, 404, input change), `CustomersService` |
-| `mfe-accounts`  | 4          | 24     | App root, `AccountListComponent` (balance format, badge types, error), `AccountDetailComponent` (fields, balance, 404, input change), `AccountsService`   |
-| **Total**       | **10**     | **54** |                                                                                                                                                           |
+| Layer         | Location              | What's covered                                                                         |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| Unit / render | `projects/**.spec.ts` | Shell app + interceptor, customers components/services, accounts components/services   |
+| End-to-end    | `e2e/**/*.spec.ts`    | Shell route switching, customers list/detail/back flow, accounts list/detail/back flow |
 
 ### Test stack
 
@@ -592,90 +639,129 @@ npm run test:all:log
 - **Mock data**: shared fixture in `mocks/db.ts` (`customersDb`, `accountsDb`)
 - **Globals**: `describe`/`it`/`expect`/`beforeAll` etc. are available globally via `"types": ["vitest/globals"]` in `tsconfig.spec.json`
 
-> **Note:** `msw/node` (Service Worker mocking) is intentionally **not** used in unit tests — importing it causes the `@angular/build:unit-test` Vitest runner to hang. MSW is wired for browser-only use (`mocks/handlers/`) and is available for future integration/e2e tests.
+> **Note:** `msw/node` (Service Worker mocking) is intentionally **not** used in unit tests — importing it causes the `@angular/build:unit-test` Vitest runner to hang. Unit tests use Angular testing utilities, while Playwright E2E runs against the browser apps started by `start:all`.
 
 ---
 
-### Coverage report (`npm run test:all:log`)
+### Consolidated test report (`npm run test:all:log`)
 
 Running `npm run test:all:log` executes `scripts/test-all-log.sh`, which:
 
-1. Runs each project with `--coverage` (using [`@vitest/coverage-v8`](https://vitest.dev/guide/coverage))
-2. Prints live feedback in the terminal as each suite completes
-3. Prints a consolidated coverage summary table at the end
-4. Writes a full human-readable report to **`test-result.log`** in the project root
+1. Runs **unit tests** via `npm run test:all`.
+2. Runs **render tests** via `npm run test:render`.
+3. Runs **e2e tests** via `npm run test:e2e`.
+4. Prints a layer summary in the terminal.
+5. Writes a full consolidated report to **`test-result.log`** in the project root.
 
 #### Terminal output (example)
 
 ```
   ██████████████████████████████████████████████
-  ██  MFE-POC  ·  Unit Tests + Coverage        ██
+  ██  MFE-POC  ·  Unit + Render + E2E Tests    ██
   ██████████████████████████████████████████████
 
-  ▶  Testing  shell ...
-  ✔  shell → 8 tests in 2 file(s) · 5.70s
-     Stmts: 100%  Branch: 100%  Funcs: 100%  Lines: 100%
+  ▶  Unit tests (coverage) ...
+  ✔  Unit → 87 tests in 25 file(s)
 
-  ▶  Testing  mfe-customers ...
-  ✔  mfe-customers → 22 tests in 4 file(s) · 7.10s
-     Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
+  ▶  Render tests ...
+  ✔  Render → 40 tests in 7 file(s)
 
-  ▶  Testing  mfe-accounts ...
-  ✔  mfe-accounts → 24 tests in 4 file(s) · 7.20s
-     Stmts: 100%  Branch: 92.5%  Funcs: 100%  Lines: 100%
+  ▶  E2E tests (Playwright) ...
+  ✔  E2E → 3 test(s)
 
-  ────────────────────────────────────────────────────────
-  Coverage Summary
+  ──────────────────────────────────────────────────────────────────────
+  Test Layer Summary
 
-  Project            |  Stmts | Branch |  Funcs |  Lines
-  ───────────────────────────────────────────────────────
-  shell              |    100 |    100 |    100 |    100 | 8 tests · 5.70s
-  mfe-customers      |    100 |   92.5 |    100 |    100 | 22 tests · 7.10s
-  mfe-accounts       |    100 |   92.5 |    100 |    100 | 24 tests · 7.20s
+  Layer      |    Tests |    Files
+  ────────────────────────────────────
+  Unit       |       87 |       25
+  Render     |       40 |        7
+  E2E        |        3 |        -
 
-  ────────────────────────────────────────────────────────
-  ✔  ALL TESTS PASSED  ·  54 tests across 10 spec file(s)
+  ✔  ALL TESTS PASSED · 130 tests
   Log: .../test-result.log
-  ────────────────────────────────────────────────────────
+  ──────────────────────────────────────────────────────────────────────
 ```
 
 #### `test-result.log` structure
 
-The log file is overwritten on every run and contains three sections per project:
+The log file is overwritten on every run and contains one section per test layer:
 
-```
-════════════════════════════════════════════════════════════
-  MFE-POC · Unit Test & Coverage Report
-  Generated: 2026-02-26 09:00:00
-════════════════════════════════════════════════════════════
+- Unit (`npm run test:all`)
+- Render (`npm run test:render`)
+- E2E (`npm run test:e2e`)
 
-┌─────────────────────────────────────────────────────────┐
-│  Project : shell                                         │
-│  Status  : PASSED ✔                                     │
-│  Files   : 2 passed                                      │
-│  Tests   : 8 passed                                      │
-│  Duration: 5.70s                                         │
-└─────────────────────────────────────────────────────────┘
+Each section includes status, summary counts, and full command output. The footer includes totals by layer and overall result.
 
-  ── Coverage ───────────────────────────────────────────
-  (v8 coverage table — Stmts / Branch / Funcs / Lines per file)
+### Troubleshooting (`test-all-log.sh`)
 
-  ── Full Output ────────────────────────────────────────
-  (raw Vitest output for debugging — build times, test names, etc.)
+Common issues and quick fixes:
 
-────────────────────────────────────────────────────────────
-... (repeated for mfe-customers and mfe-accounts) ...
+- **Native Federation warning during `ng test`**
+  - Message about `@angular-architects/native-federation:build` not being supported by `unit-test` can appear.
+  - This is expected in this workspace and does not indicate test failure by itself.
 
-════════════════════════════════════════════════════════════
-  SUMMARY
-════════════════════════════════════════════════════════════
-  Result    : ALL PASSED ✔
-  Total     : 54 tests  |  10 spec files
-  Completed : 2026-02-26 09:00:35
-════════════════════════════════════════════════════════════
-```
+- **Playwright browser not installed**
+  - Symptom: e2e phase fails before tests start.
+  - Fix: run `npm run test:e2e:install`.
+
+- **E2E fails because ports are already in use**
+  - Symptom: `start:all` cannot start one or more apps.
+  - Fix: stop existing dev servers, then rerun `npm run test:e2e` or `npm run test:all:log`.
+
+- **E2E selector strict-mode failures**
+  - Symptom: Playwright reports that a locator matches multiple elements.
+  - Fix: prefer explicit selectors (role + exact name, or stable class hooks like `.back-link`).
+
+- **Script exits with failures in one layer**
+  - `test-result.log` includes separate sections for unit, render, and e2e output.
+  - Check the failing phase section first, then rerun only that command (`test:all`, `test:render`, or `test:e2e`).
+
+### CI troubleshooting (GitHub Actions)
+
+The CI workflow in `.github/workflows/ci.yml` runs:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run test:e2e:install`
+4. `npm run test:ci`
+
+If CI fails, use this checklist:
+
+- **`npm ci` fails**
+  - Run `npm ci` locally and ensure `package-lock.json` is committed and in sync with `package.json`.
+
+- **`test:e2e:install` fails**
+  - Usually transient network/download issues when fetching Playwright Chromium.
+  - Re-run the pipeline; if persistent, verify npm registry/network restrictions in CI.
+
+- **`test:ci` fails in E2E**
+  - Check uploaded artifacts: `playwright-report`, `playwright-test-results`, and `playwright-junit`.
+  - Review PR annotations from the `Publish Playwright test annotations` step.
+
+- **Only one test layer fails**
+  - Reproduce locally with the exact command:
+    - unit: `npm run test:all`
+    - render: `npm run test:render`
+    - e2e: `npm run test:e2e`
 
 > `test-result.log` is listed in `.gitignore` — it is a local artefact and is not committed.
+
+---
+
+## CI overview
+
+CI is defined in `.github/workflows/ci.yml` and runs on push to `master` and pull requests.
+
+Pipeline steps:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run test:e2e:install`
+4. `npm run test:ci` (unit + e2e)
+
+On every run, CI uploads `playwright-junit` and publishes Playwright PR annotations.
+On failures, it also uploads `playwright-report` and `playwright-test-results` artifacts.
 
 ---
 
@@ -759,7 +845,7 @@ http.get(`${BASE}/customers/:id/orders`, async ({ params }) => {
 
 MSW's **`msw/node`** (`mocks/server.ts`) is **not used in unit tests**. Importing it causes the `@angular/build:unit-test` Vitest runner to hang indefinitely due to Node HTTP patching conflicts. Unit tests use Angular's `HttpTestingController` instead.
 
-`mocks/server.ts` is kept for use in future **integration or e2e** test suites that run outside the Angular test builder (e.g. Playwright, or a plain Vitest config targeting Node).
+`mocks/server.ts` is kept for **Node-based integration tests** outside the Angular test builder. Current browser E2E coverage is provided by Playwright specs in `e2e/`.
 
 ---
 

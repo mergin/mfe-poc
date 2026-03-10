@@ -283,7 +283,9 @@ Spacing, breakpoints, colors, and typography are defined in `styles/_variables.s
 - Tests run with **Vitest 4** via `@angular/build:unit-test` (jsdom environment).
 - Use `ng test <project> --no-watch` per project, or `npm run test:all` to run all three projects sequentially.
 - Vitest globals (`describe`, `it`, `expect`, `beforeEach`, `afterEach`) are available without imports — do NOT import them.
-- Spec files are co-located with their source files and named `*.spec.ts`.
+- Render/component test files are co-located with their source files and named `*.render.spec.ts`.
+- Non-render unit tests (e.g., services, interceptors) can remain `*.spec.ts`.
+- Use `npm run test:render` to execute render tests only.
 
 ### TestBed Setup
 
@@ -332,6 +334,22 @@ For every component, write tests covering:
 5. **Links** — assert `href` or `textContent` of anchor elements
 6. **Error state** — flush with `{ status: 4xx/5xx }` and assert `.error` element
 7. **Input reactivity** — for components with `input.required<string>()`, assert a reload occurs after `setInput()`
+
+## End-to-End Testing (Playwright)
+
+- End-to-end tests must live in the root `e2e/` folder and be grouped by domain:
+  - `e2e/shell/*.spec.ts`
+  - `e2e/customers/*.spec.ts`
+  - `e2e/accounts/*.spec.ts`
+- Do **not** place E2E files under `projects/**`; component render tests stay co-located as `*.spec.ts` next to components/services.
+- Write E2E assertions using user-visible outcomes first (URL, headings, table rows, visible links) rather than implementation details.
+- For each remote feature, include at least one happy-path E2E covering **list → detail → back to list**.
+- Keep E2E selectors stable and minimal; prefer role/text queries over brittle deep CSS selectors whenever possible.
+- Use existing scripts and config:
+  - `npm run test:e2e`
+  - `npm run test:e2e:headed`
+  - `npm run test:ci`
+- Keep Playwright configuration centralized in `playwright.config.ts` (base URL, webServer, retries, reporters).
 
 ## Known Warnings
 

@@ -1,0 +1,14 @@
+<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="57.946847999999996">
+<testsuite name="accounts\list-detail.spec.ts" timestamp="2026-03-10T13:41:10.466Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.305" errors="0">
+<testcase name="renders account list, opens detail, and navigates back" classname="accounts\list-detail.spec.ts" time="5.305">
+</testcase>
+</testsuite>
+<testsuite name="customers\list-detail.spec.ts" timestamp="2026-03-10T13:41:10.466Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.489" errors="0">
+<testcase name="renders customer list, opens detail, and navigates back" classname="customers\list-detail.spec.ts" time="5.489">
+</testcase>
+</testsuite>
+<testsuite name="shell\navigation.spec.ts" timestamp="2026-03-10T13:41:10.466Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.393" errors="0">
+<testcase name="redirects to customers and allows switching to accounts and back" classname="shell\navigation.spec.ts" time="4.393">
+</testcase>
+</testsuite>
+</testsuites>
