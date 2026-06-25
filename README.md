@@ -752,6 +752,7 @@ If CI fails, use this checklist:
 ## CI overview
 
 CI is defined in `.github/workflows/ci.yml` and runs on push to `master` and pull requests.
+For local equivalents of each CI test phase, see [Running tests](#running-tests).
 
 Pipeline steps:
 
